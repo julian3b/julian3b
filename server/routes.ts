@@ -24,11 +24,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
-      // Build query parameters for login
+      // Build query parameters for login - include code parameter for Azure Function auth
       const params = new URLSearchParams({
         action: 'login',
         email: email,
-        password: password
+        password: password,
+        ...(azureFunctionKey && { code: azureFunctionKey })
       });
 
       const response = await fetch(`${azureFunctionUrl}?${params.toString()}`, {
@@ -93,12 +94,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
-      // Build query parameters
+      // Build query parameters - include code parameter for Azure Function auth
       const params = new URLSearchParams({
         action: action as string || 'create account',
         email: email as string,
         password: password as string,
-        name: name as string || ''
+        name: name as string || '',
+        ...(azureFunctionKey && { code: azureFunctionKey })
       });
 
       const response = await fetch(`${azureFunctionUrl}?${params.toString()}`, {
