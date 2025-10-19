@@ -15,7 +15,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Azure Function URL - extract code from URL if present
       let azureFunctionUrl =
         process.env.AZURE_FUNCTION_URL ||
-        "https://functionapp120251016224732.azurewebsites.net/api/echo?name=Julian&age=41&code=0wlJAx1iZwfkO1oLeJDdvP1S6d6DZNtoUBKZ0y0Bk9UhAzFuFqaWLA==";
+        "https://functionapp120251016224732.azurewebsites.net/api/echo?";
       
       let azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
@@ -25,12 +25,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (codeParam) {
         azureFunctionKey = codeParam;
         url.searchParams.delete('code');
-        azureFunctionUrl = url.toString();
       }
+      
+      // Add the user's message as 'text' query parameter
+      url.searchParams.set('text', message);
+      azureFunctionUrl = url.toString();
 
       console.log("Calling Azure Function:", azureFunctionUrl);
       console.log("Using API key:", azureFunctionKey ? "Yes" : "No");
-      console.log("Request body:", { message });
+      console.log("Message sent as 'text' parameter:", message);
 
       const response = await fetch(azureFunctionUrl, {
         method: "POST",
