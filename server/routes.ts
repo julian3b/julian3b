@@ -12,13 +12,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Message is required" });
       }
 
-      // Replace with your Azure Function URL
-      const azureFunctionUrl =
+      // Azure Function URL - extract code from URL if present
+      let azureFunctionUrl =
         process.env.AZURE_FUNCTION_URL ||
         "https://functionapp120251016224732.azurewebsites.net/api/echo?name=Julian&age=41&code=0wlJAx1iZwfkO1oLeJDdvP1S6d6DZNtoUBKZ0y0Bk9UhAzFuFqaWLA==";
-      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+      
+      let azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      // Extract code from URL if present and move it to header
+      const url = new URL(azureFunctionUrl);
+      const codeParam = url.searchParams.get('code');
+      if (codeParam) {
+        azureFunctionKey = codeParam;
+        url.searchParams.delete('code');
+        azureFunctionUrl = url.toString();
+      }
 
       console.log("Calling Azure Function:", azureFunctionUrl);
+      console.log("Using API key:", azureFunctionKey ? "Yes" : "No");
       console.log("Request body:", { message });
 
       const response = await fetch(azureFunctionUrl, {
