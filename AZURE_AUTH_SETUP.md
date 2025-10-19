@@ -15,21 +15,19 @@ Your chatbot now requires authentication! Here's how to set up your Azure Functi
 Add these to your Replit Secrets (or `.env` file locally):
 
 ```bash
-AZURE_AUTH_LOGIN_URL=https://your-function-app.azurewebsites.net/api/login
-AZURE_AUTH_SIGNUP_URL=https://your-function-app.azurewebsites.net/api/signup
+AZURE_AUTH_URL=https://your-function-app.azurewebsites.net/api/auth
 AZURE_FUNCTION_KEY=your-api-key-here
 ```
 
+Note: Both login and signup use the same Azure Function URL. The `action` query parameter determines which operation to perform.
+
 ## Azure Function Requirements
 
-### 1. Login Function (`/api/login`)
+### 1. Login (`action=login`)
 
-**Request:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123"
-}
+**Request (GET with Query Parameters):**
+```
+GET /api/auth?action=login&email=user@example.com&password=password123
 ```
 
 **Success Response (200):**
@@ -50,11 +48,11 @@ AZURE_FUNCTION_KEY=your-api-key-here
 }
 ```
 
-### 2. Signup Function (`/api/signup`)
+### 2. Signup (`action=create account`)
 
 **Request (GET with Query Parameters):**
 ```
-GET /api/signup?action=create%20account&email=alice@example.com&password=Sup3rSecret!&name=Alice
+GET /api/auth?action=create%20account&email=alice@example.com&password=Sup3rSecret!&name=Alice
 ```
 
 **Success Response (200):**
@@ -77,67 +75,75 @@ GET /api/signup?action=create%20account&email=alice@example.com&password=Sup3rSe
 
 ## Example Azure Function Code (Node.js)
 
-### Login Function Example
-
-```javascript
-module.exports = async function (context, req) {
-    const { email, password } = req.body;
-
-    // TODO: Check credentials against your database
-    // This is just an example - implement your own logic
-    if (email && password === "correctPassword") {
-        context.res = {
-            status: 200,
-            body: {
-                success: true,
-                email: email,
-                name: "User Name",
-                token: "your-generated-token"
-            }
-        };
-    } else {
-        context.res = {
-            status: 401,
-            body: {
-                success: false,
-                message: "Invalid email or password"
-            }
-        };
-    }
-};
-```
-
-### Signup Function Example
+### Single Azure Function for Both Login and Signup
 
 ```javascript
 module.exports = async function (context, req) {
     const { action, email, password, name } = req.query;
 
-    // TODO: Store user in your database
-    // This is just an example - implement your own logic
-    
-    // Check if email already exists
-    const userExists = false; // TODO: Check your database
-    
-    if (userExists) {
+    // Handle signup (create account)
+    if (action === "create account") {
+        // TODO: Check if email already exists in your database
+        const userExists = false; // TODO: Check your database
+        
+        if (userExists) {
+            context.res = {
+                status: 200,
+                body: {
+                    ok: false,
+                    error: "User already exists."
+                }
+            };
+            return;
+        }
+
+        // TODO: Store user in your database
+        // Create new user
         context.res = {
             status: 200,
             body: {
-                ok: false,
-                error: "User already exists."
+                ok: true,
+                email: email,
+                name: name,
+                token: "your-generated-token"
             }
         };
         return;
     }
 
-    // Create new user
+    // Handle login
+    if (action === "login") {
+        // TODO: Check credentials against your database
+        const isValid = false; // TODO: Validate credentials
+        
+        if (isValid) {
+            context.res = {
+                status: 200,
+                body: {
+                    ok: true,
+                    email: email,
+                    name: "User Name",
+                    token: "your-generated-token"
+                }
+            };
+        } else {
+            context.res = {
+                status: 200,
+                body: {
+                    ok: false,
+                    error: "Invalid email or password"
+                }
+            };
+        }
+        return;
+    }
+
+    // Unknown action
     context.res = {
-        status: 200,
+        status: 400,
         body: {
-            ok: true,
-            email: email,
-            name: name,
-            token: "your-generated-token"
+            ok: false,
+            error: "Unknown action"
         }
     };
 };
@@ -162,15 +168,13 @@ module.exports = async function (context, req) {
 
 ### Test Login:
 ```bash
-curl -X POST https://your-function-app.azurewebsites.net/api/login \
-  -H "Content-Type: application/json" \
-  -H "x-functions-key: YOUR_KEY" \
-  -d '{"email":"test@example.com","password":"test123"}'
+curl "https://your-function-app.azurewebsites.net/api/auth?action=login&email=test@example.com&password=test123" \
+  -H "x-functions-key: YOUR_KEY"
 ```
 
 ### Test Signup:
 ```bash
-curl "https://your-function-app.azurewebsites.net/api/signup?action=create%20account&email=alice@example.com&password=Sup3rSecret!&name=Alice" \
+curl "https://your-function-app.azurewebsites.net/api/auth?action=create%20account&email=alice@example.com&password=Sup3rSecret!&name=Alice" \
   -H "x-functions-key: YOUR_KEY"
 ```
 

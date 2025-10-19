@@ -12,25 +12,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ ok: false, error: "Email and password are required" });
       }
 
-      // Replace with your Azure Function URL for login
-      const azureLoginUrl = process.env.AZURE_AUTH_LOGIN_URL;
+      // Use the same Azure Function URL as signup
+      const azureFunctionUrl = process.env.AZURE_AUTH_URL || process.env.AZURE_FUNCTION_URL;
       
-      if (!azureLoginUrl || azureLoginUrl === 'https://your-function-app.azurewebsites.net/api/login') {
+      if (!azureFunctionUrl) {
         return res.status(400).json({ 
           ok: false, 
-          error: "Azure Function URL not configured. Please set AZURE_AUTH_LOGIN_URL in your environment secrets." 
+          error: "Azure Function URL not configured. Please set AZURE_AUTH_URL in your environment secrets." 
         });
       }
 
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
-      const response = await fetch(azureLoginUrl, {
-        method: 'POST',
+      // Build query parameters for login
+      const params = new URLSearchParams({
+        action: 'login',
+        email: email,
+        password: password
+      });
+
+      const response = await fetch(`${azureFunctionUrl}?${params.toString()}`, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
           ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
         },
-        body: JSON.stringify({ email, password })
       });
 
       // Handle non-OK responses
@@ -76,13 +81,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ ok: false, error: "Email and password are required" });
       }
 
-      // Replace with your Azure Function URL for signup
-      const azureSignupUrl = process.env.AZURE_AUTH_SIGNUP_URL;
+      // Use the same Azure Function URL as login
+      const azureFunctionUrl = process.env.AZURE_AUTH_URL || process.env.AZURE_FUNCTION_URL;
       
-      if (!azureSignupUrl || azureSignupUrl === 'https://your-function-app.azurewebsites.net/api/signup') {
+      if (!azureFunctionUrl) {
         return res.status(400).json({ 
           ok: false, 
-          error: "Azure Function URL not configured. Please set AZURE_AUTH_SIGNUP_URL in your environment secrets." 
+          error: "Azure Function URL not configured. Please set AZURE_AUTH_URL in your environment secrets." 
         });
       }
 
@@ -96,7 +101,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: name as string || ''
       });
 
-      const response = await fetch(`${azureSignupUrl}?${params.toString()}`, {
+      const response = await fetch(`${azureFunctionUrl}?${params.toString()}`, {
         method: 'GET',
         headers: {
           ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
