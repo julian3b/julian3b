@@ -17,7 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         process.env.AZURE_FUNCTION_URL ||
         "https://functionapp120251016224732.azurewebsites.net/api/echo?name=Julian&age=41&code=0wlJAx1iZwfkO1oLeJDdvP1S6d6DZNtoUBKZ0y0Bk9UhAzFuFqaWLA==";
       const azureFunctionKey =
-        "i-1sC4o2mxbaYpqOSrIjRIUIB32JscmYH_gXjiShDzrXAzFutgDjCA==";
+        process.env.;
 
       console.log("asdasd1- test");
 
