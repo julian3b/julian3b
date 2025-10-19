@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { User, LogOut } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 type UserPanelProps = {
   isOpen: boolean;
@@ -15,6 +16,7 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
+  const { toast } = useToast();
   
   // Check if user is logged in from localStorage
   const userDataStr = localStorage.getItem('user_data');
@@ -43,13 +45,23 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
         body: JSON.stringify({ email, password })
       });
 
-      if (!response.ok) {
-        const error = await response.json();
-        alert(error.message || 'Login failed');
+      const data = await response.json();
+
+      // Check if login was successful
+      if (!response.ok || !data.ok) {
+        toast({
+          title: "Login Failed",
+          description: data.error || data.message || 'Invalid credentials',
+          variant: "destructive",
+        });
         return;
       }
 
-      const data = await response.json();
+      // Show success message
+      toast({
+        title: "Welcome Back!",
+        description: "You have successfully logged in.",
+      });
       
       // Store user data in localStorage
       const user = {
@@ -61,11 +73,17 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
       
       localStorage.setItem('user_data', JSON.stringify(user));
       
-      // Reload to update UI
-      window.location.reload();
+      // Reload to update UI after a short delay to show the toast
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login failed. Please try again.');
+      toast({
+        title: "Error",
+        description: "Login failed. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -73,38 +91,57 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
     e.preventDefault();
     
     try {
-      // Call your backend which proxies to Azure Function
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password, name })
+      // Call your backend which proxies to Azure Function with query parameters
+      const params = new URLSearchParams({
+        action: 'create account',
+        email: email,
+        password: password,
+        name: name
       });
-
-      if (!response.ok) {
-        const error = await response.json();
-        alert(error.message || 'Signup failed');
-        return;
-      }
+      
+      const response = await fetch(`/api/auth/signup?${params.toString()}`, {
+        method: 'GET',
+      });
 
       const data = await response.json();
       
+      // Check if signup was successful
+      if (!data.ok) {
+        toast({
+          title: "Signup Failed",
+          description: data.error || 'Unable to create account',
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Show success message
+      toast({
+        title: "Account Created!",
+        description: "Your account has been successfully created.",
+      });
+      
       // Store user data in localStorage
       const user = {
-        email: data.email || email,
-        name: data.name || name,
+        email: email,
+        name: name,
         loginTime: new Date().toISOString(),
         token: data.token // Optional: store auth token if your Azure Function returns one
       };
       
       localStorage.setItem('user_data', JSON.stringify(user));
       
-      // Reload to update UI
-      window.location.reload();
+      // Reload to update UI after a short delay to show the toast
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
     } catch (error) {
       console.error('Signup error:', error);
-      alert('Signup failed. Please try again.');
+      toast({
+        title: "Error",
+        description: "Signup failed. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 

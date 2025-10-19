@@ -52,21 +52,17 @@ AZURE_FUNCTION_KEY=your-api-key-here
 
 ### 2. Signup Function (`/api/signup`)
 
-**Request:**
-```json
-{
-  "email": "user@example.com",
-  "password": "password123",
-  "name": "John Doe"
-}
+**Request (GET with Query Parameters):**
+```
+GET /api/signup?action=create%20account&email=alice@example.com&password=Sup3rSecret!&name=Alice
 ```
 
 **Success Response (200):**
 ```json
 {
-  "success": true,
-  "email": "user@example.com",
-  "name": "John Doe",
+  "ok": true,
+  "email": "alice@example.com",
+  "name": "Alice",
   "token": "optional-auth-token-here"
 }
 ```
@@ -74,8 +70,8 @@ AZURE_FUNCTION_KEY=your-api-key-here
 **Error Response (400):**
 ```json
 {
-  "success": false,
-  "message": "Email already exists"
+  "ok": false,
+  "error": "User already exists."
 }
 ```
 
@@ -115,7 +111,7 @@ module.exports = async function (context, req) {
 
 ```javascript
 module.exports = async function (context, req) {
-    const { email, password, name } = req.body;
+    const { action, email, password, name } = req.query;
 
     // TODO: Store user in your database
     // This is just an example - implement your own logic
@@ -125,10 +121,10 @@ module.exports = async function (context, req) {
     
     if (userExists) {
         context.res = {
-            status: 400,
+            status: 200,
             body: {
-                success: false,
-                message: "Email already exists"
+                ok: false,
+                error: "User already exists."
             }
         };
         return;
@@ -138,7 +134,7 @@ module.exports = async function (context, req) {
     context.res = {
         status: 200,
         body: {
-            success: true,
+            ok: true,
             email: email,
             name: name,
             token: "your-generated-token"
@@ -174,10 +170,8 @@ curl -X POST https://your-function-app.azurewebsites.net/api/login \
 
 ### Test Signup:
 ```bash
-curl -X POST https://your-function-app.azurewebsites.net/api/signup \
-  -H "Content-Type: application/json" \
-  -H "x-functions-key: YOUR_KEY" \
-  -d '{"email":"new@example.com","password":"pass123","name":"New User"}'
+curl "https://your-function-app.azurewebsites.net/api/signup?action=create%20account&email=alice@example.com&password=Sup3rSecret!&name=Alice" \
+  -H "x-functions-key: YOUR_KEY"
 ```
 
 ## What's Already Implemented

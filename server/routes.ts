@@ -9,11 +9,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
+        return res.status(400).json({ ok: false, error: "Email and password are required" });
       }
 
       // Replace with your Azure Function URL for login
-      const azureLoginUrl = process.env.AZURE_AUTH_LOGIN_URL || 'https://your-function-app.azurewebsites.net/api/login';
+      const azureLoginUrl = process.env.AZURE_AUTH_LOGIN_URL;
+      
+      if (!azureLoginUrl || azureLoginUrl === 'https://your-function-app.azurewebsites.net/api/login') {
+        return res.status(400).json({ 
+          ok: false, 
+          error: "Azure Function URL not configured. Please set AZURE_AUTH_LOGIN_URL in your environment secrets." 
+        });
+      }
+
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
       const response = await fetch(azureLoginUrl, {
@@ -25,54 +33,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify({ email, password })
       });
 
+      // Handle non-OK responses
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
         return res.status(response.status).json({ 
-          message: errorData.message || 'Login failed' 
+          ok: false, 
+          error: `Azure Function returned ${response.status}: ${response.statusText}` 
         });
       }
 
-      const data = await response.json();
+      // Try to parse JSON, handle empty or invalid responses
+      const text = await response.text();
+      if (!text) {
+        return res.status(500).json({ 
+          ok: false, 
+          error: 'Azure Function returned empty response' 
+        });
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('Failed to parse Azure Function response:', text);
+        return res.status(500).json({ 
+          ok: false, 
+          error: 'Azure Function returned invalid JSON' 
+        });
+      }
+
       res.json(data);
     } catch (error) {
       console.error('Login error:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({ ok: false, error: 'Failed to connect to Azure Function. Please check your configuration.' });
     }
   });
 
-  app.post("/api/auth/signup", async (req, res) => {
+  app.get("/api/auth/signup", async (req, res) => {
     try {
-      const { email, password, name } = req.body;
+      const { action, email, password, name } = req.query;
 
       if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
+        return res.status(400).json({ ok: false, error: "Email and password are required" });
       }
 
       // Replace with your Azure Function URL for signup
-      const azureSignupUrl = process.env.AZURE_AUTH_SIGNUP_URL || 'https://your-function-app.azurewebsites.net/api/signup';
-      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
-
-      const response = await fetch(azureSignupUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
-        },
-        body: JSON.stringify({ email, password, name })
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        return res.status(response.status).json({ 
-          message: errorData.message || 'Signup failed' 
+      const azureSignupUrl = process.env.AZURE_AUTH_SIGNUP_URL;
+      
+      if (!azureSignupUrl || azureSignupUrl === 'https://your-function-app.azurewebsites.net/api/signup') {
+        return res.status(400).json({ 
+          ok: false, 
+          error: "Azure Function URL not configured. Please set AZURE_AUTH_SIGNUP_URL in your environment secrets." 
         });
       }
 
-      const data = await response.json();
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      // Build query parameters
+      const params = new URLSearchParams({
+        action: action as string || 'create account',
+        email: email as string,
+        password: password as string,
+        name: name as string || ''
+      });
+
+      const response = await fetch(`${azureSignupUrl}?${params.toString()}`, {
+        method: 'GET',
+        headers: {
+          ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
+        },
+      });
+
+      // Handle non-OK responses
+      if (!response.ok) {
+        return res.status(response.status).json({ 
+          ok: false, 
+          error: `Azure Function returned ${response.status}: ${response.statusText}` 
+        });
+      }
+
+      // Try to parse JSON, handle empty or invalid responses
+      const text = await response.text();
+      if (!text) {
+        return res.status(500).json({ 
+          ok: false, 
+          error: 'Azure Function returned empty response' 
+        });
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (parseError) {
+        console.error('Failed to parse Azure Function response:', text);
+        return res.status(500).json({ 
+          ok: false, 
+          error: 'Azure Function returned invalid JSON' 
+        });
+      }
+
       res.json(data);
     } catch (error) {
       console.error('Signup error:', error);
-      res.status(500).json({ message: 'Internal server error' });
+      res.status(500).json({ ok: false, error: 'Failed to connect to Azure Function. Please check your configuration.' });
     }
   });
 
