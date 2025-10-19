@@ -1,0 +1,48 @@
+injected.js:204  POST https://20d93b51-88bb-4a10-bbf3-6eb9ae3e5c7f-00-1vdrpesmptst0.kirk.replit.dev/api/chat 500 (Internal Server Error)
+apply @ injected.js:204
+handleSendMessage @ Home.tsx:17
+handleSend @ ChatInterface.tsx:42
+handleSend @ ChatInput.tsx:16
+handleKeyDown @ ChatInput.tsx:27
+callCallback2 @ chunk-WERSD76P.js?v=6e7bdb9f:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=6e7bdb9f:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=6e7bdb9f:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=6e7bdb9f:3736
+executeDispatch @ chunk-WERSD76P.js?v=6e7bdb9f:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=6e7bdb9f:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=6e7bdb9f:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=6e7bdb9f:7051
+(anonymous) @ chunk-WERSD76P.js?v=6e7bdb9f:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=6e7bdb9f:18913
+batchedUpdates @ chunk-WERSD76P.js?v=6e7bdb9f:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=6e7bdb9f:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=6e7bdb9f:5478
+dispatchEvent @ chunk-WERSD76P.js?v=6e7bdb9f:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=6e7bdb9f:5449Understand this error
+injected.js:27 Error sending message: Error: HTTP error! status: 500
+    at handleSendMessage (Home.tsx:26:15)
+    at async handleSend (ChatInterface.tsx:42:24)
+(anonymous) @ injected.js:27
+handleSendMessage @ Home.tsx:32
+await in handleSendMessage
+handleSend @ ChatInterface.tsx:42
+handleSend @ ChatInput.tsx:16
+handleKeyDown @ ChatInput.tsx:27
+callCallback2 @ chunk-WERSD76P.js?v=6e7bdb9f:3674
+invokeGuardedCallbackDev @ chunk-WERSD76P.js?v=6e7bdb9f:3699
+invokeGuardedCallback @ chunk-WERSD76P.js?v=6e7bdb9f:3733
+invokeGuardedCallbackAndCatchFirstError @ chunk-WERSD76P.js?v=6e7bdb9f:3736
+executeDispatch @ chunk-WERSD76P.js?v=6e7bdb9f:7014
+processDispatchQueueItemsInOrder @ chunk-WERSD76P.js?v=6e7bdb9f:7034
+processDispatchQueue @ chunk-WERSD76P.js?v=6e7bdb9f:7043
+dispatchEventsForPlugins @ chunk-WERSD76P.js?v=6e7bdb9f:7051
+(anonymous) @ chunk-WERSD76P.js?v=6e7bdb9f:7174
+batchedUpdates$1 @ chunk-WERSD76P.js?v=6e7bdb9f:18913
+batchedUpdates @ chunk-WERSD76P.js?v=6e7bdb9f:3579
+dispatchEventForPluginEventSystem @ chunk-WERSD76P.js?v=6e7bdb9f:7173
+dispatchEventWithEnableCapturePhaseSelectiveHydrationWithoutDiscreteEventReplay @ chunk-WERSD76P.js?v=6e7bdb9f:5478
+dispatchEvent @ chunk-WERSD76P.js?v=6e7bdb9f:5472
+dispatchDiscreteEvent @ chunk-WERSD76P.js?v=6e7bdb9f:5449Understand this error
+injected.js:27 Error sending message: Error: HTTP error! status: 500
+    at handleSendMessage (Home.tsx:26:15)
+    at async handleSend (ChatInterface.tsx:42:24)
