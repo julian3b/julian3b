@@ -1,16 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TabNavigation } from "@/components/TabNavigation";
 import { ChatInterface } from "@/components/ChatInterface";
 import { PlaceholderTab } from "@/components/PlaceholderTab";
 import { ThemeToggle } from "@/components/ThemeToggle";
 
+function getUserId(): string {
+  const STORAGE_KEY = 'chatbot_user_id';
+  
+  let userId = localStorage.getItem(STORAGE_KEY);
+  
+  if (!userId) {
+    userId = `user_${Date.now()}_${Math.random().toString(36).substring(2, 15)}`;
+    localStorage.setItem(STORAGE_KEY, userId);
+    console.log('New user! Generated ID:', userId);
+  } else {
+    console.log('Returning user! ID:', userId);
+  }
+  
+  return userId;
+}
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
+  const [userId, setUserId] = useState<string>("");
 
   const tabs = [
     { id: "chat", label: "Chat" },
     { id: "custom", label: "Custom Tab" },
   ];
+
+  useEffect(() => {
+    setUserId(getUserId());
+  }, []);
 
   const handleSendMessage = async (message: string) => {
     try {
@@ -19,7 +40,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ message, userId })
       });
 
       if (!response.ok) {

@@ -6,7 +6,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint - proxies to Azure Function (avoids CORS)
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message } = req.body;
+      const { message, userId } = req.body;
 
       if (!message) {
         return res.status(400).json({ error: "Message is required" });
@@ -29,11 +29,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Add the user's message as 'text' query parameter
       url.searchParams.set('text', message);
+      
+      // Add userId if provided
+      if (userId) {
+        url.searchParams.set('userId', userId);
+      }
+      
       azureFunctionUrl = url.toString();
 
       console.log("Calling Azure Function:", azureFunctionUrl);
       console.log("Using API key:", azureFunctionKey ? "Yes" : "No");
       console.log("Message sent as 'text' parameter:", message);
+      console.log("User ID:", userId || "Not provided");
 
       const response = await fetch(azureFunctionUrl, {
         method: "POST",
