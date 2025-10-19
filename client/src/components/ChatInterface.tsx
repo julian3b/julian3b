@@ -11,7 +11,7 @@ type Message = {
 };
 
 type ChatInterfaceProps = {
-  onSendMessage: (message: string) => Promise<void>;
+  onSendMessage: (message: string) => Promise<any>;
 };
 
 export function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
@@ -39,17 +39,24 @@ export function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
     setIsLoading(true);
 
     try {
-      await onSendMessage(content);
+      const response = await onSendMessage(content);
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: "I'm your AI assistant! I'm ready to help you with questions, tasks, and conversations.",
+        content: response.message || response.text || response.reply || JSON.stringify(response),
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
     } catch (error) {
       console.error("Error sending message:", error);
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Sorry, I encountered an error. Please try again.",
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, errorMessage]);
     } finally {
       setIsLoading(false);
     }
