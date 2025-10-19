@@ -32,13 +32,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...(azureFunctionKey && { code: azureFunctionKey })
       });
 
-      const response = await fetch(`${azureFunctionUrl}?${params.toString()}`, {
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log(`[LOGIN] Calling Azure Function: ${fullUrl.replace(azureFunctionKey || '', 'KEY_HIDDEN')}`);
+      
+      const response = await fetch(fullUrl, {
         method: 'GET',
         headers: {
           ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
         },
       });
 
+      console.log(`[LOGIN] Azure Function responded with status: ${response.status}`);
+      
       // Handle non-OK responses
       if (!response.ok) {
         return res.status(response.status).json({ 
@@ -49,6 +54,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Try to parse JSON, handle empty or invalid responses
       const text = await response.text();
+      console.log(`[LOGIN] Azure Function response: ${text.substring(0, 200)}`);
       if (!text) {
         return res.status(500).json({ 
           ok: false, 
@@ -103,13 +109,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...(azureFunctionKey && { code: azureFunctionKey })
       });
 
-      const response = await fetch(`${azureFunctionUrl}?${params.toString()}`, {
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log(`[SIGNUP] Calling Azure Function: ${fullUrl.replace(azureFunctionKey || '', 'KEY_HIDDEN')}`);
+      
+      const response = await fetch(fullUrl, {
         method: 'GET',
         headers: {
           ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
         },
       });
 
+      console.log(`[SIGNUP] Azure Function responded with status: ${response.status}`);
+      
       // Handle non-OK responses
       if (!response.ok) {
         return res.status(response.status).json({ 
@@ -120,6 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Try to parse JSON, handle empty or invalid responses
       const text = await response.text();
+      console.log(`[SIGNUP] Azure Function response: ${text.substring(0, 200)}`);
       if (!text) {
         return res.status(500).json({ 
           ok: false, 
