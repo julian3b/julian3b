@@ -44,7 +44,7 @@ export function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: response.message || response.text || response.reply || JSON.stringify(response),
+        content: response.ai?.reply || response.reply || "No reply received",
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
