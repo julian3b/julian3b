@@ -21,6 +21,15 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
   const userData = userDataStr ? JSON.parse(userDataStr) : null;
   const isLoggedIn = !!userData;
 
+  // Email validation regex
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Form validation
+  const isFormValid = isValidEmail(email) && password.length >= 8 && (!isLogin ? name.trim().length > 0 : true);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -200,7 +209,12 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
             />
           </div>
 
-          <Button type="submit" className="w-full" data-testid="button-submit">
+          <Button 
+            type="submit" 
+            className="w-full" 
+            data-testid="button-submit"
+            disabled={!isFormValid}
+          >
             {isLogin ? "Log In" : "Create Account"}
           </Button>
 
