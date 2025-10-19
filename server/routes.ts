@@ -13,17 +13,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Replace with your Azure Function URL
-      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 'https://your-function-app.azurewebsites.net/api/yourFunction';
-      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+      const azureFunctionUrl =
+        process.env.AZURE_FUNCTION_URL ||
+        "https://functionapp120251016224732.azurewebsites.net/api/echo?name=Julian&age=41&code=0wlJAx1iZwfkO1oLeJDdvP1S6d6DZNtoUBKZ0y0Bk9UhAzFuFqaWLA==";
+      const azureFunctionKey =
+        "i-1sC4o2mxbaYpqOSrIjRIUIB32JscmYH_gXjiShDzrXAzFutgDjCA==";
+
+      console.log("asdasd1- test");
 
       const response = await fetch(azureFunctionUrl, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
           // Add API key if needed
-          ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey })
+          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
         },
-        body: JSON.stringify({ message })
+        body: JSON.stringify({ message }),
       });
 
       if (!response.ok) {
@@ -31,10 +36,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
+      console.log("asdasd1" + data);
       res.json(data);
     } catch (error) {
-      console.error('Error calling Azure Function:', error);
-      res.status(500).json({ error: 'Failed to process message' });
+      console.error("Error calling Azure Function:", error);
+      res.status(500).json({ error: "Failed to process message" });
     }
   });
 
