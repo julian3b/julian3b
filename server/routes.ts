@@ -3,6 +3,79 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication endpoints - proxy to Azure Function
+  app.post("/api/auth/login", async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Replace with your Azure Function URL for login
+      const azureLoginUrl = process.env.AZURE_AUTH_LOGIN_URL || 'https://your-function-app.azurewebsites.net/api/login';
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const response = await fetch(azureLoginUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return res.status(response.status).json({ 
+          message: errorData.message || 'Login failed' 
+        });
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Login error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
+  app.post("/api/auth/signup", async (req, res) => {
+    try {
+      const { email, password, name } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
+      }
+
+      // Replace with your Azure Function URL for signup
+      const azureSignupUrl = process.env.AZURE_AUTH_SIGNUP_URL || 'https://your-function-app.azurewebsites.net/api/signup';
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const response = await fetch(azureSignupUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
+        },
+        body: JSON.stringify({ email, password, name })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        return res.status(response.status).json({ 
+          message: errorData.message || 'Signup failed' 
+        });
+      }
+
+      const data = await response.json();
+      res.json(data);
+    } catch (error) {
+      console.error('Signup error:', error);
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
+
   // Chat endpoint - proxies to Azure Function (avoids CORS)
   app.post("/api/chat", async (req, res) => {
     try {

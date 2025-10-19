@@ -4,6 +4,7 @@ import { ChatInterface } from "@/components/ChatInterface";
 import { PlaceholderTab } from "@/components/PlaceholderTab";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserPanel } from "@/components/UserPanel";
+import { LandingPage } from "@/components/LandingPage";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 
@@ -27,6 +28,7 @@ export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
   const [userId, setUserId] = useState<string>("");
   const [isUserPanelOpen, setIsUserPanelOpen] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const tabs = [
     { id: "chat", label: "Chat" },
@@ -35,6 +37,10 @@ export default function Home() {
 
   useEffect(() => {
     setUserId(getUserId());
+    
+    // Check if user is authenticated
+    const userDataStr = localStorage.getItem('user_data');
+    setIsAuthenticated(!!userDataStr);
   }, []);
 
   const handleSendMessage = async (message: string) => {
@@ -62,7 +68,8 @@ export default function Home() {
   return (
     <div className="flex flex-col h-screen">
       <header className="flex items-center justify-between border-b border-border bg-background">
-        <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
+        {isAuthenticated && <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />}
+        {!isAuthenticated && <div className="px-6 py-3"><h2 className="text-lg font-semibold">AI Chat</h2></div>}
         <div className="flex items-center gap-2 px-4">
           <Button 
             variant="ghost" 
@@ -79,8 +86,14 @@ export default function Home() {
       <UserPanel isOpen={isUserPanelOpen} onClose={() => setIsUserPanelOpen(false)} />
 
       <main className="flex-1 overflow-hidden">
-        {activeTab === "chat" && <ChatInterface onSendMessage={handleSendMessage} />}
-        {activeTab === "custom" && <PlaceholderTab />}
+        {!isAuthenticated ? (
+          <LandingPage onOpenLogin={() => setIsUserPanelOpen(true)} />
+        ) : (
+          <>
+            {activeTab === "chat" && <ChatInterface onSendMessage={handleSendMessage} />}
+            {activeTab === "custom" && <PlaceholderTab />}
+          </>
+        )}
       </main>
     </div>
   );

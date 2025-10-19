@@ -21,36 +21,82 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
   const userData = userDataStr ? JSON.parse(userDataStr) : null;
   const isLoggedIn = !!userData;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Store user data in localStorage
-    const user = {
-      email,
-      name: email.split('@')[0],
-      loginTime: new Date().toISOString()
-    };
-    
-    localStorage.setItem('user_data', JSON.stringify(user));
-    
-    // Reload to update UI
-    window.location.reload();
+    try {
+      // Call your backend which proxies to Azure Function
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.message || 'Login failed');
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Store user data in localStorage
+      const user = {
+        email: data.email || email,
+        name: data.name || email.split('@')[0],
+        loginTime: new Date().toISOString(),
+        token: data.token // Optional: store auth token if your Azure Function returns one
+      };
+      
+      localStorage.setItem('user_data', JSON.stringify(user));
+      
+      // Reload to update UI
+      window.location.reload();
+    } catch (error) {
+      console.error('Login error:', error);
+      alert('Login failed. Please try again.');
+    }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Store user data in localStorage
-    const user = {
-      email,
-      name,
-      loginTime: new Date().toISOString()
-    };
-    
-    localStorage.setItem('user_data', JSON.stringify(user));
-    
-    // Reload to update UI
-    window.location.reload();
+    try {
+      // Call your backend which proxies to Azure Function
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password, name })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.message || 'Signup failed');
+        return;
+      }
+
+      const data = await response.json();
+      
+      // Store user data in localStorage
+      const user = {
+        email: data.email || email,
+        name: data.name || name,
+        loginTime: new Date().toISOString(),
+        token: data.token // Optional: store auth token if your Azure Function returns one
+      };
+      
+      localStorage.setItem('user_data', JSON.stringify(user));
+      
+      // Reload to update UI
+      window.location.reload();
+    } catch (error) {
+      console.error('Signup error:', error);
+      alert('Signup failed. Please try again.');
+    }
   };
 
   const handleLogout = () => {
