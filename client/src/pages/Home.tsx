@@ -3,6 +3,9 @@ import { TabNavigation } from "@/components/TabNavigation";
 import { ChatInterface } from "@/components/ChatInterface";
 import { PlaceholderTab } from "@/components/PlaceholderTab";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { UserPanel } from "@/components/UserPanel";
+import { Button } from "@/components/ui/button";
+import { User } from "lucide-react";
 
 function getUserId(): string {
   const STORAGE_KEY = 'chatbot_user_id';
@@ -23,6 +26,7 @@ function getUserId(): string {
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
   const [userId, setUserId] = useState<string>("");
+  const [isUserPanelOpen, setIsUserPanelOpen] = useState(false);
 
   const tabs = [
     { id: "chat", label: "Chat" },
@@ -59,10 +63,20 @@ export default function Home() {
     <div className="flex flex-col h-screen">
       <header className="flex items-center justify-between border-b border-border bg-background">
         <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />
-        <div className="px-4">
+        <div className="flex items-center gap-2 px-4">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => setIsUserPanelOpen(true)}
+            data-testid="button-user-menu"
+          >
+            <User className="w-5 h-5" />
+          </Button>
           <ThemeToggle />
         </div>
       </header>
+
+      <UserPanel isOpen={isUserPanelOpen} onClose={() => setIsUserPanelOpen(false)} />
 
       <main className="flex-1 overflow-hidden">
         {activeTab === "chat" && <ChatInterface onSendMessage={handleSendMessage} />}
