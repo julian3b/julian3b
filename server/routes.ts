@@ -16,27 +16,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const azureFunctionUrl =
         process.env.AZURE_FUNCTION_URL ||
         "https://functionapp120251016224732.azurewebsites.net/api/echo?name=Julian&age=41&code=0wlJAx1iZwfkO1oLeJDdvP1S6d6DZNtoUBKZ0y0Bk9UhAzFuFqaWLA==";
-      const azureFunctionKey =
-        process.env.;
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
-      console.log("asdasd1- test");
+      console.log("Calling Azure Function:", azureFunctionUrl);
+      console.log("Request body:", { message });
 
       const response = await fetch(azureFunctionUrl, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // Add API key if needed
           ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
         },
         body: JSON.stringify({ message }),
       });
 
+      console.log("Response status:", response.status);
+      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        throw new Error(`Azure Function error: ${response.status}`);
+        const errorText = await response.text();
+        console.error("Azure Function error response:", errorText);
+        throw new Error(`Azure Function error: ${response.status} - ${errorText}`);
       }
 
       const data = await response.json();
-      console.log("asdasd1" + data);
+      console.log("Azure Function response data:", data);
       res.json(data);
     } catch (error) {
       console.error("Error calling Azure Function:", error);
