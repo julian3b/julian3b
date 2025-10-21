@@ -3,8 +3,10 @@ import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, LogOut } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { User, LogOut, Settings } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { UserSettings } from "./UserSettings";
 
 type UserPanelProps = {
   isOpen: boolean;
@@ -155,40 +157,57 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
   if (isLoggedIn) {
     return (
       <Sheet open={isOpen} onOpenChange={onClose}>
-        <SheetContent data-testid="panel-user-logged-in">
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto" data-testid="panel-user-logged-in">
           <SheetHeader>
             <SheetTitle>Account</SheetTitle>
-            <SheetDescription>Manage your account settings</SheetDescription>
+            <SheetDescription>Manage your account and preferences</SheetDescription>
           </SheetHeader>
 
-          <div className="mt-6 space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                <User className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-lg" data-testid="text-user-name">{userData.name}</h3>
-                <p className="text-sm text-muted-foreground" data-testid="text-user-email">{userData.email}</p>
-              </div>
-            </div>
+          <Tabs defaultValue="profile" className="mt-6">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="profile" data-testid="tab-profile">
+                <User className="w-4 h-4 mr-2" />
+                Profile
+              </TabsTrigger>
+              <TabsTrigger value="settings" data-testid="tab-settings">
+                <Settings className="w-4 h-4 mr-2" />
+                Settings
+              </TabsTrigger>
+            </TabsList>
 
-            <div className="space-y-4 pt-4 border-t">
-              <div>
-                <Label className="text-sm text-muted-foreground">Member since</Label>
-                <p className="text-sm">{new Date(userData.loginTime).toLocaleDateString()}</p>
+            <TabsContent value="profile" className="space-y-6 mt-6">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <User className="w-8 h-8 text-primary" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg" data-testid="text-user-name">{userData.name}</h3>
+                  <p className="text-sm text-muted-foreground" data-testid="text-user-email">{userData.email}</p>
+                </div>
               </div>
-            </div>
 
-            <Button 
-              onClick={handleLogout} 
-              variant="destructive" 
-              className="w-full"
-              data-testid="button-logout"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Log Out
-            </Button>
-          </div>
+              <div className="space-y-4 pt-4 border-t">
+                <div>
+                  <Label className="text-sm text-muted-foreground">Member since</Label>
+                  <p className="text-sm">{new Date(userData.loginTime).toLocaleDateString()}</p>
+                </div>
+              </div>
+
+              <Button 
+                onClick={handleLogout} 
+                variant="destructive" 
+                className="w-full"
+                data-testid="button-logout"
+              >
+                <LogOut className="w-4 h-4 mr-2" />
+                Log Out
+              </Button>
+            </TabsContent>
+
+            <TabsContent value="settings" className="mt-6">
+              <UserSettings userEmail={userData.email} />
+            </TabsContent>
+          </Tabs>
         </SheetContent>
       </Sheet>
     );
