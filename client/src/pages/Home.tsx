@@ -45,10 +45,10 @@ export default function Home() {
 
   const handleSendMessage = async (message: string) => {
     try {
-      // Get user's name from localStorage
+      // Get user's email from localStorage
       const userDataStr = localStorage.getItem('user_data');
       const userData = userDataStr ? JSON.parse(userDataStr) : null;
-      const userName = userData?.name || 'User';
+      const userEmail = userData?.email || 'user@example.com';
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -58,7 +58,7 @@ export default function Home() {
         body: JSON.stringify({ 
           message, 
           userId,
-          name: userName 
+          name: userEmail 
         })
       });
 
