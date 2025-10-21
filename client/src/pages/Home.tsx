@@ -24,11 +24,20 @@ function getUserId(): string {
   return userId;
 }
 
+type Message = {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  timestamp: Date;
+};
+
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
   const [userId, setUserId] = useState<string>("");
   const [isUserPanelOpen, setIsUserPanelOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [chatHistory, setChatHistory] = useState<Message[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
   const tabs = [
     { id: "chat", label: "Chat" },
@@ -40,8 +49,67 @@ export default function Home() {
     
     // Check if user is authenticated
     const userDataStr = localStorage.getItem('user_data');
-    setIsAuthenticated(!!userDataStr);
+    const isAuth = !!userDataStr;
+    setIsAuthenticated(isAuth);
+
+    // Fetch chat history if authenticated
+    if (isAuth) {
+      fetchChatHistory();
+    }
   }, []);
+
+  const fetchChatHistory = async () => {
+    try {
+      setIsLoadingHistory(true);
+      const userDataStr = localStorage.getItem('user_data');
+      const userData = userDataStr ? JSON.parse(userDataStr) : null;
+      const userEmail = userData?.email;
+
+      if (!userEmail) {
+        console.log('No user email found, skipping history fetch');
+        return;
+      }
+
+      const response = await fetch('/api/chat/history', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: userEmail })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.ok && data.items) {
+        // Convert history items to Message format
+        const historyMessages: Message[] = data.items.flatMap((item: any, index: number) => [
+          {
+            id: `history-user-${index}`,
+            role: "user" as const,
+            content: item.Input,
+            timestamp: new Date(item.CreatedUtc || new Date())
+          },
+          {
+            id: `history-ai-${index}`,
+            role: "assistant" as const,
+            content: item.Response,
+            timestamp: new Date(item.CreatedUtc || new Date())
+          }
+        ]);
+        
+        setChatHistory(historyMessages);
+        console.log(`Loaded ${data.count} history items`);
+      }
+    } catch (error) {
+      console.error('Error fetching chat history:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   const handleSendMessage = async (message: string) => {
     try {
@@ -99,7 +167,12 @@ export default function Home() {
           <LandingPage onOpenLogin={() => setIsUserPanelOpen(true)} />
         ) : (
           <>
-            {activeTab === "chat" && <ChatInterface onSendMessage={handleSendMessage} />}
+            {activeTab === "chat" && (
+              <ChatInterface 
+                onSendMessage={handleSendMessage} 
+                initialMessages={chatHistory}
+              />
+            )}
             {activeTab === "custom" && <PlaceholderTab />}
           </>
         )}

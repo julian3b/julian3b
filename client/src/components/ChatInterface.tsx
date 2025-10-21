@@ -12,12 +12,20 @@ type Message = {
 
 type ChatInterfaceProps = {
   onSendMessage: (message: string) => Promise<any>;
+  initialMessages?: Message[];
 };
 
-export function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+export function ChatInterface({ onSendMessage, initialMessages = [] }: ChatInterfaceProps) {
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update messages when initialMessages changes
+  useEffect(() => {
+    if (initialMessages.length > 0) {
+      setMessages(initialMessages);
+    }
+  }, [initialMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

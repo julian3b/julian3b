@@ -169,6 +169,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Chat history endpoint - fetches user's chat history
+  app.post("/api/chat/history", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
+        "https://functionapp120251021090023.azurewebsites.net/api/echo";
+      
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const params = new URLSearchParams({
+        ...(azureFunctionKey && { code: azureFunctionKey })
+      });
+
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log("[HISTORY] Fetching chat history for user (email not logged)");
+
+      const response = await fetch(fullUrl, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
+        },
+        body: JSON.stringify({
+          email: email,
+          action: "history"
+        })
+      });
+
+      console.log("[HISTORY] Azure Function responded with status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[HISTORY] Azure Function error response");
+        throw new Error(`Azure Function error: ${response.status}`);
+      }
+
+      const text = await response.text();
+      if (!text) {
+        console.log('[HISTORY] Empty response from Azure Function');
+        return res.json({ ok: true, items: [] });
+      }
+
+      const data = JSON.parse(text);
+      console.log(`[HISTORY] Retrieved ${data.count || 0} history items`);
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching history:", error);
+      res.status(500).json({ error: "Failed to fetch chat history" });
+    }
+  });
+
   // Chat endpoint - proxies to Azure Function (avoids CORS)
   app.post("/api/chat", async (req, res) => {
     try {
