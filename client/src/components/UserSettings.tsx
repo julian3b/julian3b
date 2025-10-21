@@ -53,7 +53,16 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
 
       const data = await response.json();
       if (data.ok && data.settings) {
-        setSettings(data.settings);
+        // Normalize field names (Azure returns PascalCase, we need camelCase)
+        const normalizedSettings = {
+          model: data.settings.model || data.settings.Model,
+          temperature: data.settings.temperature || data.settings.Temperature,
+          maxTokens: data.settings.maxTokens || data.settings.MaxTokens,
+          responseStyle: data.settings.responseStyle || data.settings.ResponseStyle,
+          conversationStyle: data.settings.conversationStyle || data.settings.ConversationStyle,
+          customPersonality: data.settings.customPersonality || data.settings.CustomPersonality || "",
+        };
+        setSettings(normalizedSettings);
       }
     } catch (error) {
       console.error('Error fetching settings:', error);
