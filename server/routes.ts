@@ -178,8 +178,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Message is required" });
       }
 
-      // Use the same Azure Function URL as login/signup
-      const azureFunctionUrl = process.env.AZURE_AUTH_URL || 
+      // Use dedicated chat endpoint (separate from auth endpoint for security)
+      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
         "https://functionapp120251021090023.azurewebsites.net/api/echo";
       
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
