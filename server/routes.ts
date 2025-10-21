@@ -193,7 +193,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // SECURITY: Don't log full URL as it may contain sensitive user message content
       console.log("[CHAT] Calling Azure Function (SECURE - email and message in encrypted POST body, not logged)");
 
-      // SECURE: Send email, message, and userId in encrypted POST body
+      // SECURE: Send email and message in encrypted POST body
       const response = await fetch(fullUrl, {
         method: "POST",
         headers: {
@@ -202,8 +202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           email: name || 'user@example.com',
-          text: message,
-          ...(userId && { userId: userId })
+          text: message
         })
       });
       
