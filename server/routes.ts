@@ -184,23 +184,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
-      // Build query parameters - include code for authentication
+      // SECURITY: Only include auth code in URL, send data in encrypted POST body
       const params = new URLSearchParams({
-        email: name || 'user@example.com',  // Required by Azure Function
-        text: message,
-        ...(userId && { userId: userId }),
         ...(azureFunctionKey && { code: azureFunctionKey })
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
       // SECURITY: Don't log full URL as it may contain sensitive user message content
-      console.log("[CHAT] Calling Azure Function (message content not logged for privacy)");
+      console.log("[CHAT] Calling Azure Function (SECURE - email and message in encrypted POST body, not logged)");
 
+      // SECURE: Send email, message, and userId in encrypted POST body
       const response = await fetch(fullUrl, {
-        method: "GET",
+        method: "POST",
         headers: {
+          'Content-Type': 'application/json',
           ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
         },
+        body: JSON.stringify({
+          email: name || 'user@example.com',
+          text: message,
+          ...(userId && { userId: userId })
+        })
       });
       
       console.log("[CHAT] Azure Function responded with status:", response.status);
