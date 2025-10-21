@@ -4,6 +4,12 @@
 
 This is a full-stack AI chatbot web application built with React, Express, and TypeScript. The application features a modern chat interface with authentication, allowing users to have conversations with an AI assistant. The frontend is built using React with Vite, styled with Tailwind CSS and shadcn/ui components, while the backend is an Express server that proxies authentication requests to Azure Functions and handles chat interactions.
 
+## Recent Changes
+
+- **October 21, 2025**: Added conversation history context to chat messages - AI now receives last 10 messages for conversation context
+- **October 21, 2025**: Implemented comprehensive settings panel with AI customization options (model, temperature, response style, etc.)
+- **October 21, 2025**: Added automatic chat history loading on user authentication
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -106,10 +112,10 @@ The application delegates authentication to Azure Functions rather than implemen
 **Supported Azure Function Actions:**
 - `login` - User authentication
 - `create account` - User registration
-- Chat (no action field) - Send message and receive AI response
+- Chat (no action field) - Send message with conversation history and receive AI response
 - `history` - Retrieve user's conversation history
-- `get_settings` - Fetch user's AI preferences
-- `save_settings` - Persist user's AI preferences
+- `getSettings` - Fetch user's AI preferences
+- `saveSettings` - Persist user's AI preferences
 
 **Security Implementation:**
 - All credentials, messages, and settings transmitted in POST request body (never in URL)

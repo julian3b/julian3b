@@ -344,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint - proxies to Azure Function (avoids CORS)
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, userId, name } = req.body;
+      const { message, userId, name, history } = req.body;
 
       if (!message) {
         return res.status(400).json({ error: "Message is required" });
@@ -364,9 +364,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
       
       // SECURITY: Email and message sent in encrypted POST body (not logged for privacy)
-      console.log("[CHAT] Calling Azure Function (SECURE - email and message in encrypted POST body, not logged)");
+      console.log("[CHAT] Calling Azure Function (SECURE - email, message, and history in encrypted POST body, not logged)");
 
-      // SECURE: Send email and message in encrypted POST body
+      // SECURE: Send email, message, and conversation history in encrypted POST body
       const response = await fetch(fullUrl, {
         method: "POST",
         headers: {
@@ -375,7 +375,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           email: name || 'user@example.com',
-          text: message
+          text: message,
+          history: history || []
         })
       });
       

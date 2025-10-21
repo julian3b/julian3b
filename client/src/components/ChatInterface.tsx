@@ -11,7 +11,7 @@ type Message = {
 };
 
 type ChatInterfaceProps = {
-  onSendMessage: (message: string) => Promise<any>;
+  onSendMessage: (message: string, history: Message[]) => Promise<any>;
   initialMessages?: Message[];
 };
 
@@ -46,11 +46,14 @@ export function ChatInterface({
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMessage]);
+    // Add user message to state first
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setIsLoading(true);
 
     try {
-      const response = await onSendMessage(content);
+      // Send message with full conversation history for context
+      const response = await onSendMessage(content, messages);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),

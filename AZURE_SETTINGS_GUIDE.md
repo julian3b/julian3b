@@ -258,10 +258,102 @@ curl -X POST "https://your-function.azurewebsites.net/api/echo?code=YOUR_KEY" \
 
 ---
 
+## Action 3: Chat with Conversation History
+
+**NEW: The chat endpoint now sends conversation history for context!**
+
+When a user sends a chat message, your Azure Function receives:
+
+**Request Format:**
+```json
+{
+  "email": "user@example.com",
+  "text": "What is TypeScript?",
+  "history": [
+    {
+      "role": "user",
+      "content": "Hello! Can you help me?"
+    },
+    {
+      "role": "assistant",
+      "content": "Of course! I'm here to help. What do you need?"
+    },
+    {
+      "role": "user",
+      "content": "I'm learning web development."
+    },
+    {
+      "role": "assistant",
+      "content": "That's great! Web development is an exciting field..."
+    }
+  ]
+}
+```
+
+**Parameters your Azure Function reads:**
+```csharp
+var email = ReadParam("email");
+var text = ReadParam("text");
+var historyJson = ReadParam("history");  // JSON array of conversation
+```
+
+**History Array Details:**
+- Contains the **last 10 messages** from the conversation (5 back-and-forth exchanges)
+- Each message has:
+  - `role`: `"user"` or `"assistant"`
+  - `content`: The message text
+- Ordered chronologically (oldest first)
+- Empty array `[]` if this is the first message in the conversation
+
+**How to Use History in OpenAI Calls:**
+
+When calling the OpenAI API, include the history in the `messages` array:
+
+```csharp
+// Parse history from JSON
+var messages = new List<object>();
+
+// Add system message (use user's custom personality if available)
+var settings = GetUserSettings(email);
+var systemPrompt = BuildSystemPrompt(settings);
+messages.Add(new { role = "system", content = systemPrompt });
+
+// Add conversation history
+if (!string.IsNullOrEmpty(historyJson))
+{
+    var history = JsonConvert.DeserializeObject<List<HistoryMessage>>(historyJson);
+    foreach (var msg in history)
+    {
+        messages.Add(new { role = msg.role, content = msg.content });
+    }
+}
+
+// Add the current user message
+messages.Add(new { role = "user", content = text });
+
+// Call OpenAI with full context
+var response = await openAiClient.ChatCompletions.CreateAsync(new
+{
+    model = settings.model,
+    messages = messages,
+    temperature = settings.temperature,
+    max_tokens = settings.maxTokens
+});
+```
+
+**Benefits:**
+- The AI remembers the conversation context
+- Users can have multi-turn conversations
+- The AI can refer back to earlier parts of the discussion
+- More natural, coherent conversations
+
+---
+
 ## Security Notes
 
 - ✅ Email addresses are sent in POST body (secure)
 - ✅ Settings are sent in POST body (secure)
+- ✅ Conversation history sent in POST body (secure)
 - ✅ All data transmitted over HTTPS
 - ✅ No sensitive data in URLs or logs
 

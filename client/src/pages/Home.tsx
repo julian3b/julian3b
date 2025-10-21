@@ -111,12 +111,18 @@ export default function Home() {
     }
   };
 
-  const handleSendMessage = async (message: string) => {
+  const handleSendMessage = async (message: string, history: Message[]) => {
     try {
       // Get user's email from localStorage
       const userDataStr = localStorage.getItem('user_data');
       const userData = userDataStr ? JSON.parse(userDataStr) : null;
       const userEmail = userData?.email || 'user@example.com';
+
+      // Format history for Azure Function (keep last 10 messages for context)
+      const recentHistory = history.slice(-10).map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
 
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -126,7 +132,8 @@ export default function Home() {
         body: JSON.stringify({ 
           message, 
           userId,
-          name: userEmail 
+          name: userEmail,
+          history: recentHistory
         })
       });
 
