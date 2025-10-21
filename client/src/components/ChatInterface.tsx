@@ -15,7 +15,10 @@ type ChatInterfaceProps = {
   initialMessages?: Message[];
 };
 
-export function ChatInterface({ onSendMessage, initialMessages = [] }: ChatInterfaceProps) {
+export function ChatInterface({
+  onSendMessage,
+  initialMessages = [],
+}: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -48,7 +51,7 @@ export function ChatInterface({ onSendMessage, initialMessages = [] }: ChatInter
 
     try {
       const response = await onSendMessage(content);
-      
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
@@ -78,7 +81,7 @@ export function ChatInterface({ onSendMessage, initialMessages = [] }: ChatInter
             <div className="flex items-center justify-center h-[400px]">
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Welcome to AI Chat iiiiii2222222
+                  Welcome to AI Chat
                 </h3>
                 <p className="text-muted-foreground">
                   Start a conversation by typing a message below
@@ -86,7 +89,7 @@ export function ChatInterface({ onSendMessage, initialMessages = [] }: ChatInter
               </div>
             </div>
           )}
-          
+
           {messages.map((message) => (
             <ChatMessage key={message.id} message={message} />
           ))}
