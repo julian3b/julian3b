@@ -186,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Build query parameters - include code for authentication
       const params = new URLSearchParams({
-        name: name || 'User',  // Required by Azure Function
+        email: name || 'user@example.com',  // Required by Azure Function
         text: message,
         ...(userId && { userId: userId }),
         ...(azureFunctionKey && { code: azureFunctionKey })
