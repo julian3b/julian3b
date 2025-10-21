@@ -1,0 +1,54 @@
+        // ---------- default: call OpenAI using stored settings + HISTORY (with per-request overrides) ----------
+        // 1) load stored settings or defaults
+        var storedSettings = !string.IsNullOrWhiteSpace(email)
+            ? await _settings.GetAsync(email)
+            : UserSettings.Defaults;
+
+        // 2) read overrides
+        var modelOverride = ReadParam("model");
+        var temperatureOverride = ReadParam("temperature");
+        var maxTokensOverride = ReadParam("maxTokens");
+        var responseStyleOverride = ReadParam("responseStyle");
+        var conversationStyleOverride = ReadParam("conversationStyle");
+        var customPersonalityOverride = ReadParam("customPersonality");
+
+        // 3) merge
+        var effective = MergeSettings(
+            storedSettings,
+            modelOverride,
+            temperatureOverride,
+            maxTokensOverride,
+            responseStyleOverride,
+            conversationStyleOverride,
+            customPersonalityOverride
+        );
+
+        // 4) pull recent history (pairs) for this user; default 8, cap 20
+        int historyCount = 8;
+        var history = ReadParam("history");
+
+        var historyItems = (!string.IsNullOrWhiteSpace(email) && historyCount > 0)
+            ? await _log.GetHistoryAsync(email!, take: historyCount)
+            : Array.Empty<UserTextLogItem>();
+
+        // 5) build messages: system, (u,a)* oldest→newest, current user
+        var messages = BuildMessages(effective, historyItems, text);
+
+        // 6) call OpenAI with messages
+        var (aiReply, aiError) = await CallOpenAIWithMessagesAsync(messages, effective);
+
+        // 7) log
+        await _log.LogAsync(email, text, aiReply);
+
+        var payload = new
+        {
+            ok = true,
+            routeId = id,
+            query = new { email, text, historyCount },
+            method = req.Method,
+            settingsUsed = effective,
+            ai = new { reply = aiReply, error = aiError },
+            timestamp = DateTimeOffset.UtcNow
+        };
+
+        return await Json(req, HttpStatusCode.OK, payload);

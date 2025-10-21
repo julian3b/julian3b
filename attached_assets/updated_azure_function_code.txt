@@ -1,0 +1,148 @@
+// ---------- default: call OpenAI using stored settings + HISTORY (with per-request overrides) ----------
+// 1) load stored settings or defaults
+var storedSettings = !string.IsNullOrWhiteSpace(email)
+    ? await _settings.GetAsync(email)
+    : UserSettings.Defaults;
+
+// 2) read overrides
+var modelOverride = ReadParam("model");
+var temperatureOverride = ReadParam("temperature");
+var maxTokensOverride = ReadParam("maxTokens");
+var responseStyleOverride = ReadParam("responseStyle");
+var conversationStyleOverride = ReadParam("conversationStyle");
+var customPersonalityOverride = ReadParam("customPersonality");
+
+// 3) merge
+var effective = MergeSettings(
+    storedSettings,
+    modelOverride,
+    temperatureOverride,
+    maxTokensOverride,
+    responseStyleOverride,
+    conversationStyleOverride,
+    customPersonalityOverride
+);
+
+// 4) Parse conversation history from request (sent by web app)
+var historyJson = ReadParam("history");
+List<HistoryMessage> historyItems = new List<HistoryMessage>();
+
+if (!string.IsNullOrWhiteSpace(historyJson))
+{
+    try
+    {
+        // The web app sends history as JSON array with { role, content }
+        historyItems = JsonConvert.DeserializeObject<List<HistoryMessage>>(historyJson) 
+            ?? new List<HistoryMessage>();
+    }
+    catch (Exception ex)
+    {
+        // Log parse error but continue without history
+        Console.WriteLine($"Failed to parse history: {ex.Message}");
+    }
+}
+
+// 5) build messages: system, history (already has role+content), current user
+var messages = BuildMessagesFromHistory(effective, historyItems, text);
+
+// 6) call OpenAI with messages
+var (aiReply, aiError) = await CallOpenAIWithMessagesAsync(messages, effective);
+
+// 7) log
+await _log.LogAsync(email, text, aiReply);
+
+var payload = new
+{
+    ok = true,
+    routeId = id,
+    query = new { email, text, historyCount = historyItems.Count },
+    method = req.Method,
+    settingsUsed = effective,
+    ai = new { reply = aiReply, error = aiError },
+    timestamp = DateTimeOffset.UtcNow
+};
+
+return await Json(req, HttpStatusCode.OK, payload);
+
+// ---------- HELPER CLASS ----------
+public class HistoryMessage
+{
+    public string role { get; set; }     // "user" or "assistant"
+    public string content { get; set; }  // message text
+}
+
+// ---------- UPDATED BuildMessages METHOD ----------
+private List<object> BuildMessagesFromHistory(
+    UserSettings settings, 
+    List<HistoryMessage> history, 
+    string currentUserMessage)
+{
+    var messages = new List<object>();
+    
+    // 1. Add system message (with custom personality if set)
+    var systemPrompt = BuildSystemPrompt(settings);
+    messages.Add(new { role = "system", content = systemPrompt });
+    
+    // 2. Add conversation history (already formatted with role + content)
+    foreach (var msg in history)
+    {
+        messages.Add(new { role = msg.role, content = msg.content });
+    }
+    
+    // 3. Add current user message
+    messages.Add(new { role = "user", content = currentUserMessage });
+    
+    return messages;
+}
+
+private string BuildSystemPrompt(UserSettings settings)
+{
+    // Start with base prompt
+    var prompt = "You are a helpful AI assistant.";
+    
+    // Add response style guidance
+    if (!string.IsNullOrEmpty(settings.ResponseStyle))
+    {
+        switch (settings.ResponseStyle.ToLower())
+        {
+            case "concise":
+                prompt += " Keep your responses brief and to the point.";
+                break;
+            case "detailed":
+                prompt += " Provide thorough and detailed explanations.";
+                break;
+            case "balanced":
+            default:
+                prompt += " Provide clear, balanced responses.";
+                break;
+        }
+    }
+    
+    // Add conversation style guidance
+    if (!string.IsNullOrEmpty(settings.ConversationStyle))
+    {
+        switch (settings.ConversationStyle.ToLower())
+        {
+            case "professional":
+                prompt += " Maintain a professional tone.";
+                break;
+            case "casual":
+                prompt += " Use a casual, friendly tone.";
+                break;
+            case "friendly":
+                prompt += " Be warm and friendly.";
+                break;
+            case "technical":
+                prompt += " Use technical language and be precise.";
+                break;
+        }
+    }
+    
+    // Add custom personality if provided
+    if (!string.IsNullOrEmpty(settings.CustomPersonality))
+    {
+        prompt += " " + settings.CustomPersonality;
+    }
+    
+    return prompt;
+}
