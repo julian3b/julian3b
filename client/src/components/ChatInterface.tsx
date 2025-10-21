@@ -81,7 +81,7 @@ export function ChatInterface({
             <div className="flex items-center justify-center h-[400px]">
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Welcome to AI Chat 1
+                  Welcome to AI Chat
                 </h3>
                 <p className="text-muted-foreground">
                   Start a conversation by typing a message below
