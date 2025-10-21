@@ -191,15 +191,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
       
-      // Prepare the body
-      const requestBody = {
-        email: name || 'user@example.com',
-        text: message
-      };
-      
-      // TEMPORARY DEBUG: Log what we're sending
-      console.log("[CHAT] Sending POST to Azure Function");
-      console.log("[CHAT] Body being sent:", JSON.stringify(requestBody));
+      // SECURITY: Email and message sent in encrypted POST body (not logged for privacy)
+      console.log("[CHAT] Calling Azure Function (SECURE - email and message in encrypted POST body, not logged)");
 
       // SECURE: Send email and message in encrypted POST body
       const response = await fetch(fullUrl, {
@@ -208,7 +201,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Content-Type': 'application/json',
           ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify({
+          email: name || 'user@example.com',
+          text: message
+        })
       });
       
       console.log("[CHAT] Azure Function responded with status:", response.status);
