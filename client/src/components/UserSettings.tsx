@@ -85,6 +85,12 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
         throw new Error('Failed to save settings');
       }
 
+      const data = await response.json();
+      
+      if (!data.ok) {
+        throw new Error(data.error || 'Failed to save settings');
+      }
+
       toast({
         title: "Success",
         description: "Your settings have been saved!",
@@ -93,7 +99,7 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
       console.error('Error saving settings:', error);
       toast({
         title: "Error",
-        description: "Failed to save your settings. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to save your settings. Please try again.",
         variant: "destructive",
       });
     } finally {
