@@ -91,16 +91,18 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
     e.preventDefault();
     
     try {
-      // Call your backend which proxies to Azure Function with query parameters
-      const params = new URLSearchParams({
-        action: 'create account',
-        email: email,
-        password: password,
-        name: name
-      });
-      
-      const response = await fetch(`/api/auth/signup?${params.toString()}`, {
-        method: 'GET',
+      // SECURE: Send credentials in POST body, not URL query parameters
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          action: 'create account',
+          email: email,
+          password: password,
+          name: name
+        })
       });
 
       const data = await response.json();

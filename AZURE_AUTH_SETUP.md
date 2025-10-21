@@ -1,12 +1,12 @@
-# Azure Function Authentication Setup
+# Azure Function Authentication Setup - SECURE VERSION
 
-Your chatbot now requires authentication! Here's how to set up your Azure Functions to handle login and signup.
+Your chatbot now requires authentication with **SECURE credential handling**! Passwords are sent in encrypted POST bodies, not URL parameters.
 
 ## How It Works
 
 1. **User visits** → Sees landing page (can't access chat)
 2. **User clicks "Get Started"** → Login/Signup panel opens
-3. **User enters credentials** → Sent to your Azure Function for verification
+3. **User enters credentials** → Sent **securely** via HTTPS POST body to your Azure Function
 4. **Azure Function validates** → Returns success or error
 5. **Success** → User logged in, can now use chatbot
 
@@ -15,25 +15,36 @@ Your chatbot now requires authentication! Here's how to set up your Azure Functi
 Add these to your Replit Secrets (or `.env` file locally):
 
 ```bash
+# IMPORTANT: Use a DEDICATED auth endpoint, NOT your chat endpoint
 AZURE_AUTH_URL=https://your-function-app.azurewebsites.net/api/auth
 AZURE_FUNCTION_KEY=your-api-key-here
 ```
 
-Note: Both login and signup use the same Azure Function URL. The `action` query parameter determines which operation to perform.
+**SECURITY NOTE:** 
+- The `AZURE_AUTH_URL` should be **separate** from any chat or message endpoints
+- Credentials are sent in encrypted POST request body, **NOT** in URL query parameters
+- This prevents passwords from appearing in server logs, browser history, or proxy logs
 
-## Azure Function Requirements
+## Azure Function Requirements (SECURE POST-based)
 
 ### 1. Login (`action=login`)
 
-**Request (GET with Query Parameters):**
-```
-GET /api/auth?action=login&email=user@example.com&password=password123
+**Request (SECURE POST with JSON body):**
+```http
+POST /api/auth?code=YOUR_FUNCTION_KEY
+Content-Type: application/json
+
+{
+  "action": "login",
+  "email": "user@example.com",
+  "password": "password123"
+}
 ```
 
 **Success Response (200):**
 ```json
 {
-  "success": true,
+  "ok": true,
   "email": "user@example.com",
   "name": "John Doe",
   "token": "optional-auth-token-here"
@@ -43,16 +54,24 @@ GET /api/auth?action=login&email=user@example.com&password=password123
 **Error Response (401/400):**
 ```json
 {
-  "success": false,
-  "message": "Invalid credentials"
+  "ok": false,
+  "error": "Invalid credentials"
 }
 ```
 
 ### 2. Signup (`action=create account`)
 
-**Request (GET with Query Parameters):**
-```
-GET /api/auth?action=create%20account&email=alice@example.com&password=Sup3rSecret!&name=Alice
+**Request (SECURE POST with JSON body):**
+```http
+POST /api/auth?code=YOUR_FUNCTION_KEY
+Content-Type: application/json
+
+{
+  "action": "create account",
+  "email": "alice@example.com",
+  "password": "Sup3rSecret!",
+  "name": "Alice"
+}
 ```
 
 **Success Response (200):**
@@ -73,13 +92,14 @@ GET /api/auth?action=create%20account&email=alice@example.com&password=Sup3rSecr
 }
 ```
 
-## Example Azure Function Code (Node.js)
+## Example Azure Function Code (Node.js) - SECURE VERSION
 
 ### Single Azure Function for Both Login and Signup
 
 ```javascript
 module.exports = async function (context, req) {
-    const { action, email, password, name } = req.query;
+    // SECURE: Read credentials from POST body, not URL query parameters
+    const { action, email, password, name } = req.body;
 
     // Handle signup (create account)
     if (action === "create account") {
@@ -151,31 +171,41 @@ module.exports = async function (context, req) {
 
 ## Security Recommendations
 
-1. **Hash passwords** - Never store plain text passwords
+1. **✅ IMPLEMENTED: POST with body** - Credentials sent in encrypted POST body, not URL
+   - Prevents password exposure in server logs, browser history, and proxy logs
+   - HTTPS encrypts the entire request body
+
+2. **Hash passwords** - Never store plain text passwords
    - Use bcrypt or similar: `bcrypt.hash(password, 10)`
 
-2. **Use tokens** - Return a JWT or session token
+3. **Use tokens** - Return a JWT or session token
    - Frontend stores it in localStorage
    - Send it with every chat request
 
-3. **Validate inputs** - Check email format, password strength
+4. **Validate inputs** - Check email format, password strength
 
-4. **Rate limiting** - Prevent brute force attacks
+5. **Rate limiting** - Prevent brute force attacks
 
-5. **HTTPS only** - Azure Functions use HTTPS by default ✅
+6. **Separate endpoints** - Use dedicated auth endpoint, not your chat endpoint
 
-## Testing Your Setup
+7. **HTTPS only** - Azure Functions use HTTPS by default ✅
+
+## Testing Your Setup (SECURE POST method)
 
 ### Test Login:
 ```bash
-curl "https://your-function-app.azurewebsites.net/api/auth?action=login&email=test@example.com&password=test123" \
-  -H "x-functions-key: YOUR_KEY"
+curl -X POST "https://your-function-app.azurewebsites.net/api/auth?code=YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -H "x-functions-key: YOUR_KEY" \
+  -d '{"action":"login","email":"test@example.com","password":"test123"}'
 ```
 
 ### Test Signup:
 ```bash
-curl "https://your-function-app.azurewebsites.net/api/auth?action=create%20account&email=alice@example.com&password=Sup3rSecret!&name=Alice" \
-  -H "x-functions-key: YOUR_KEY"
+curl -X POST "https://your-function-app.azurewebsites.net/api/auth?code=YOUR_KEY" \
+  -H "Content-Type: application/json" \
+  -H "x-functions-key: YOUR_KEY" \
+  -d '{"action":"create account","email":"alice@example.com","password":"Sup3rSecret!","name":"Alice"}'
 ```
 
 ## What's Already Implemented

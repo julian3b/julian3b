@@ -12,34 +12,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ ok: false, error: "Email and password are required" });
       }
 
-      // Use the same Azure Function URL as signup
-      const azureFunctionUrl = process.env.AZURE_AUTH_URL || process.env.AZURE_FUNCTION_URL;
+      // SECURITY: Require dedicated auth URL (no fallback to avoid reusing chat endpoint)
+      const azureFunctionUrl = process.env.AZURE_AUTH_URL;
       
       if (!azureFunctionUrl) {
-        return res.status(400).json({ 
+        return res.status(500).json({ 
           ok: false, 
-          error: "Azure Function URL not configured. Please set AZURE_AUTH_URL in your environment secrets." 
+          error: "AZURE_AUTH_URL not configured. Please set a dedicated authentication endpoint in your environment secrets." 
         });
       }
 
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
-      // Build query parameters for login - include code parameter for Azure Function auth
+      // SECURE: Only include auth code in URL, NOT credentials
       const params = new URLSearchParams({
-        action: 'login',
-        email: email,
-        password: password,
         ...(azureFunctionKey && { code: azureFunctionKey })
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log(`[LOGIN] Calling Azure Function: ${fullUrl.replace(azureFunctionKey || '', 'KEY_HIDDEN')}`);
+      console.log(`[LOGIN] Calling Azure Function (SECURE - credentials in encrypted POST body, not logged)`);
       
+      // SECURE: Send credentials in encrypted POST body, not URL
       const response = await fetch(fullUrl, {
-        method: 'GET',
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
         },
+        body: JSON.stringify({
+          action: 'login',
+          email: email,
+          password: password
+        })
       });
 
       console.log(`[LOGIN] Azure Function responded with status: ${response.status}`);
@@ -54,8 +58,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Try to parse JSON, handle empty or invalid responses
       const text = await response.text();
-      console.log(`[LOGIN] Azure Function response: ${text.substring(0, 200)}`);
       if (!text) {
+        console.log('[LOGIN] Empty response from Azure Function');
         return res.status(500).json({ 
           ok: false, 
           error: 'Azure Function returned empty response' 
@@ -65,8 +69,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let data;
       try {
         data = JSON.parse(text);
+        // SECURITY: Only log success/failure, NOT the response content (may contain tokens/user data)
+        console.log(`[LOGIN] Authentication ${data.ok ? 'successful' : 'failed'}`);
       } catch (parseError) {
-        console.error('Failed to parse Azure Function response:', text);
+        console.error('[LOGIN] Failed to parse Azure Function response (content not logged)');
         return res.status(500).json({ 
           ok: false, 
           error: 'Azure Function returned invalid JSON' 
@@ -80,43 +86,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/auth/signup", async (req, res) => {
+  app.post("/api/auth/signup", async (req, res) => {
     try {
-      const { action, email, password, name } = req.query;
+      const { action, email, password, name } = req.body;
 
       if (!email || !password) {
         return res.status(400).json({ ok: false, error: "Email and password are required" });
       }
 
-      // Use the same Azure Function URL as login
-      const azureFunctionUrl = process.env.AZURE_AUTH_URL || process.env.AZURE_FUNCTION_URL;
+      // SECURITY: Require dedicated auth URL (no fallback to avoid reusing chat endpoint)
+      const azureFunctionUrl = process.env.AZURE_AUTH_URL;
       
       if (!azureFunctionUrl) {
-        return res.status(400).json({ 
+        return res.status(500).json({ 
           ok: false, 
-          error: "Azure Function URL not configured. Please set AZURE_AUTH_URL in your environment secrets." 
+          error: "AZURE_AUTH_URL not configured. Please set a dedicated authentication endpoint in your environment secrets." 
         });
       }
 
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
-      // Build query parameters - include code parameter for Azure Function auth
+      // SECURE: Only include auth code in URL, NOT credentials
       const params = new URLSearchParams({
-        action: action as string || 'create account',
-        email: email as string,
-        password: password as string,
-        name: name as string || '',
         ...(azureFunctionKey && { code: azureFunctionKey })
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log(`[SIGNUP] Calling Azure Function: ${fullUrl.replace(azureFunctionKey || '', 'KEY_HIDDEN')}`);
+      console.log(`[SIGNUP] Calling Azure Function (SECURE - credentials in encrypted POST body, not logged)`);
       
+      // SECURE: Send credentials in encrypted POST body, not URL
       const response = await fetch(fullUrl, {
-        method: 'GET',
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
         },
+        body: JSON.stringify({
+          action: action || 'create account',
+          email: email,
+          password: password,
+          name: name || ''
+        })
       });
 
       console.log(`[SIGNUP] Azure Function responded with status: ${response.status}`);
@@ -131,8 +141,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Try to parse JSON, handle empty or invalid responses
       const text = await response.text();
-      console.log(`[SIGNUP] Azure Function response: ${text.substring(0, 200)}`);
       if (!text) {
+        console.log('[SIGNUP] Empty response from Azure Function');
         return res.status(500).json({ 
           ok: false, 
           error: 'Azure Function returned empty response' 
@@ -142,8 +152,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let data;
       try {
         data = JSON.parse(text);
+        // SECURITY: Only log success/failure, NOT the response content (may contain tokens/user data)
+        console.log(`[SIGNUP] Account creation ${data.ok ? 'successful' : 'failed'}`);
       } catch (parseError) {
-        console.error('Failed to parse Azure Function response:', text);
+        console.error('[SIGNUP] Failed to parse Azure Function response (content not logged)');
         return res.status(500).json({ 
           ok: false, 
           error: 'Azure Function returned invalid JSON' 
@@ -181,9 +193,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log("[CHAT] Calling Azure Function:", fullUrl.replace(azureFunctionKey || '', 'KEY_HIDDEN'));
-      console.log("[CHAT] Message:", message);
-      console.log("[CHAT] User ID:", userId || "Not provided");
+      // SECURITY: Don't log full URL as it may contain sensitive user message content
+      console.log("[CHAT] Calling Azure Function (message content not logged for privacy)");
 
       const response = await fetch(fullUrl, {
         method: "GET",
@@ -201,13 +212,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const text = await response.text();
-      console.log("[CHAT] Azure Function response:", text.substring(0, 200));
       
       if (!text) {
+        console.log('[CHAT] Empty response from Azure Function');
         throw new Error('Azure Function returned empty response');
       }
 
       const data = JSON.parse(text);
+      // SECURITY: Only log success/failure, NOT message content or AI response
+      console.log(`[CHAT] Response received ${data.ok ? 'successfully' : 'with error'}`);
       res.json(data);
     } catch (error) {
       console.error("Error calling Azure Function:", error);
