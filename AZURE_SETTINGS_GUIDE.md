@@ -29,7 +29,7 @@ The settings object has the following structure:
 ```json
 {
   "email": "user@example.com",
-  "action": "get_settings"
+  "action": "getSettings"
 }
 ```
 
@@ -65,16 +65,24 @@ The settings object has the following structure:
 ```json
 {
   "email": "user@example.com",
-  "action": "save_settings",
-  "settings": {
-    "model": "gpt-4",
-    "temperature": 0.9,
-    "maxTokens": 3000,
-    "responseStyle": "detailed",
-    "conversationStyle": "technical",
-    "customPersonality": "You are an expert Python developer..."
-  }
+  "action": "saveSettings",
+  "model": "gpt-4",
+  "temperature": 0.9,
+  "maxTokens": 3000,
+  "responseStyle": "detailed",
+  "conversationStyle": "technical",
+  "customPersonality": "You are an expert Python developer..."
 }
+```
+
+**Parameters your Azure Function reads:**
+```csharp
+var model = ReadParam("model");
+var temperature = ReadParam("temperature");
+var maxTokens = ReadParam("maxTokens");
+var responseStyle = ReadParam("responseStyle");
+var conversationStyle = ReadParam("conversationStyle");
+var customPersonality = ReadParam("customPersonality");
 ```
 
 **Expected Response:**
@@ -230,7 +238,7 @@ curl -X POST "https://your-function.azurewebsites.net/api/echo?code=YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
-    "action": "get_settings"
+    "action": "getSettings"
   }'
 
 # Save settings
@@ -238,15 +246,13 @@ curl -X POST "https://your-function.azurewebsites.net/api/echo?code=YOUR_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "test@example.com",
-    "action": "save_settings",
-    "settings": {
-      "model": "gpt-4",
-      "temperature": 0.9,
-      "maxTokens": 3000,
-      "responseStyle": "detailed",
-      "conversationStyle": "technical",
-      "customPersonality": "You are an expert developer"
-    }
+    "action": "saveSettings",
+    "model": "gpt-4",
+    "temperature": 0.9,
+    "maxTokens": 3000,
+    "responseStyle": "detailed",
+    "conversationStyle": "technical",
+    "customPersonality": "You are an expert developer"
   }'
 ```
 

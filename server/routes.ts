@@ -254,7 +254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           email: email,
-          action: "get_settings"
+          action: "getSettings"
         })
       });
 
@@ -309,8 +309,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           email: email,
-          action: "save_settings",
-          settings: settings
+          action: "saveSettings",
+          model: settings.model,
+          temperature: settings.temperature,
+          maxTokens: settings.maxTokens,
+          responseStyle: settings.responseStyle,
+          conversationStyle: settings.conversationStyle,
+          customPersonality: settings.customPersonality
         })
       });
 
