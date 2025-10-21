@@ -166,56 +166,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "Message is required" });
       }
 
-      // Azure Function URL - extract code from URL if present
-      let azureFunctionUrl =
-        process.env.AZURE_FUNCTION_URL ||
-        "https://functionapp120251016224732.azurewebsites.net/api/echo?";
+      // Use the same Azure Function URL as login/signup
+      const azureFunctionUrl = process.env.AZURE_AUTH_URL || 
+        "https://functionapp120251021090023.azurewebsites.net/api/echo";
       
-      let azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
-      // Extract code from URL if present and move it to header
-      const url = new URL(azureFunctionUrl);
-      const codeParam = url.searchParams.get('code');
-      if (codeParam) {
-        azureFunctionKey = codeParam;
-        url.searchParams.delete('code');
-      }
-      
-      // Add the user's message as 'text' query parameter
-      url.searchParams.set('text', message);
-      
-      // Add userId if provided
-      if (userId) {
-        url.searchParams.set('userId', userId);
-      }
-      
-      azureFunctionUrl = url.toString();
-
-      console.log("Calling Azure Function:", azureFunctionUrl);
-      console.log("Using API key:", azureFunctionKey ? "Yes" : "No");
-      console.log("Message sent as 'text' parameter:", message);
-      console.log("User ID:", userId || "Not provided");
-
-      const response = await fetch(azureFunctionUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
-        },
-        body: JSON.stringify({ message }),
+      // Build query parameters - include code for authentication
+      const params = new URLSearchParams({
+        text: message,
+        ...(userId && { userId: userId }),
+        ...(azureFunctionKey && { code: azureFunctionKey })
       });
 
-      console.log("Response status:", response.status);
-      console.log("Response headers:", Object.fromEntries(response.headers.entries()));
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log("[CHAT] Calling Azure Function:", fullUrl.replace(azureFunctionKey || '', 'KEY_HIDDEN'));
+      console.log("[CHAT] Message:", message);
+      console.log("[CHAT] User ID:", userId || "Not provided");
+
+      const response = await fetch(fullUrl, {
+        method: "GET",
+        headers: {
+          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
+        },
+      });
+      
+      console.log("[CHAT] Azure Function responded with status:", response.status);
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Azure Function error response:", errorText);
+        console.error("[CHAT] Azure Function error response:", errorText);
         throw new Error(`Azure Function error: ${response.status} - ${errorText}`);
       }
 
-      const data = await response.json();
-      console.log("Azure Function response data:", data);
+      const text = await response.text();
+      console.log("[CHAT] Azure Function response:", text.substring(0, 200));
+      
+      if (!text) {
+        throw new Error('Azure Function returned empty response');
+      }
+
+      const data = JSON.parse(text);
       res.json(data);
     } catch (error) {
       console.error("Error calling Azure Function:", error);
