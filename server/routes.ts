@@ -548,10 +548,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/worlds/:id", async (req, res) => {
     try {
       const { id } = req.params;
-      const { email } = req.query;
+      const { email, name } = req.query;
 
       if (!email || typeof email !== 'string') {
         return res.status(400).json({ error: "Email is required" });
+      }
+
+      if (!name || typeof name !== 'string') {
+        return res.status(400).json({ error: "World name is required" });
       }
 
       const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
@@ -563,7 +567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log("[WORLDS] Deleting world from Azure Table Storage");
+      console.log("[WORLDS] Deleting world from Azure Table Storage by name");
 
       const response = await fetch(fullUrl, {
         method: "POST",
@@ -573,8 +577,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           action: "deleteworld",
-          id: id,
-          email: email
+          email: email,
+          name: name
         })
       });
 
