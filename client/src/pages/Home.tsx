@@ -36,6 +36,7 @@ type Message = {
 export default function Home() {
   const [activeTab, setActiveTab] = useState("chat");
   const [userId, setUserId] = useState<string>("");
+  const [userEmail, setUserEmail] = useState<string>("");
   const [isUserPanelOpen, setIsUserPanelOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
@@ -43,21 +44,13 @@ export default function Home() {
 
   // Fetch worlds for dynamic tabs
   const { data: worldsData } = useQuery<{ ok: boolean; worlds: World[] }>({
-    queryKey: ["/api/worlds", userId],
+    queryKey: ["/api/worlds", userId, userEmail],
     queryFn: async () => {
-      if (!userId) return { ok: true, worlds: [] };
-      
-      const userDataStr = localStorage.getItem('user_data');
-      const userData = userDataStr ? JSON.parse(userDataStr) : null;
-      const userEmail = userData?.email;
-      
-      if (!userEmail) return { ok: true, worlds: [] };
-      
       const response = await fetch(`/api/worlds?userId=${userId}&email=${encodeURIComponent(userEmail)}`);
       if (!response.ok) throw new Error("Failed to fetch worlds");
       return response.json();
     },
-    enabled: !!userId && isAuthenticated,
+    enabled: !!userId && !!userEmail && isAuthenticated,
   });
 
   const worlds = worldsData?.worlds || [];
@@ -79,6 +72,12 @@ export default function Home() {
     const userDataStr = localStorage.getItem('user_data');
     const isAuth = !!userDataStr;
     setIsAuthenticated(isAuth);
+
+    // Get user email for queries
+    if (isAuth && userDataStr) {
+      const userData = JSON.parse(userDataStr);
+      setUserEmail(userData?.email || "");
+    }
 
     // Fetch chat history if authenticated
     if (isAuth) {
