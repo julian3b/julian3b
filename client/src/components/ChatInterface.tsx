@@ -23,6 +23,7 @@ type ChatInterfaceProps = {
   onSendMessage: (message: string, history: Message[], worldSettings?: any) => Promise<any>;
   initialMessages?: Message[];
   userId: string;
+  userEmail: string;
   worldName?: string; // Optional world name for dedicated world chats
 };
 
@@ -30,6 +31,7 @@ export function ChatInterface({
   onSendMessage,
   initialMessages = [],
   userId,
+  userEmail,
   worldName,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
@@ -39,13 +41,16 @@ export function ChatInterface({
 
   // Only fetch worlds if this is the main chat (not a dedicated world chat)
   const { data: worldsData } = useQuery<{ ok: boolean; worlds: World[] }>({
-    queryKey: ["/api/worlds", userId],
+    queryKey: ["/api/worlds", userId, userEmail],
     queryFn: async () => {
-      const response = await fetch(`/api/worlds?userId=${userId}`);
+      if (!userEmail || !userId) {
+        throw new Error("User email and ID required");
+      }
+      const response = await fetch(`/api/worlds?userId=${userId}&email=${encodeURIComponent(userEmail)}`);
       if (!response.ok) throw new Error("Failed to fetch worlds");
       return response.json();
     },
-    enabled: !worldName, // Only fetch if not a dedicated world chat
+    enabled: !worldName && !!userEmail && !!userId, // Only fetch if not a dedicated world chat and have credentials
   });
 
   const worlds = worldsData?.worlds || [];

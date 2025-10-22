@@ -219,6 +219,7 @@ export default function Home() {
                 onSendMessage={handleSendMessage} 
                 initialMessages={chatHistory}
                 userId={userId}
+                userEmail={userEmail}
               />
             )}
             {activeTab === "world-settings" && (
@@ -251,6 +252,7 @@ export default function Home() {
                   })}
                   initialMessages={[]}
                   userId={userId}
+                  userEmail={userEmail}
                   worldName={world.name}
                 />
               );
