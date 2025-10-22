@@ -203,7 +203,14 @@ export default function Home() {
                 userId={userId}
               />
             )}
-            {activeTab === "world-settings" && <Worlds userId={userId} />}
+            {activeTab === "world-settings" && (
+              (() => {
+                const userDataStr = localStorage.getItem('user_data');
+                const userData = userDataStr ? JSON.parse(userDataStr) : null;
+                const userEmail = userData?.email || '';
+                return <Worlds userId={userId} userEmail={userEmail} />;
+              })()
+            )}
             {activeTab.startsWith("world-") && activeTab !== "world-settings" && (() => {
               const worldId = activeTab.replace("world-", "");
               const world = worlds.find(w => w.id === worldId);

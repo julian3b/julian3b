@@ -35,9 +35,10 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 
 type WorldsProps = {
   userId: string;
+  userEmail: string;
 };
 
-export default function Worlds({ userId }: WorldsProps) {
+export default function Worlds({ userId, userEmail }: WorldsProps) {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingWorld, setEditingWorld] = useState<World | null>(null);
@@ -62,7 +63,7 @@ export default function Worlds({ userId }: WorldsProps) {
   const { data: worldsData, isLoading } = useQuery<{ ok: boolean; worlds: World[] }>({
     queryKey: ["/api/worlds", userId],
     queryFn: async () => {
-      const response = await fetch(`/api/worlds?userId=${userId}`);
+      const response = await fetch(`/api/worlds?userId=${userId}&email=${encodeURIComponent(userEmail)}`);
       if (!response.ok) throw new Error("Failed to fetch worlds");
       return response.json();
     },
@@ -71,7 +72,7 @@ export default function Worlds({ userId }: WorldsProps) {
   // Create world mutation
   const createMutation = useMutation({
     mutationFn: async (data: InsertWorld) => {
-      return apiRequest("POST", "/api/worlds", data);
+      return apiRequest("POST", "/api/worlds", { ...data, email: userEmail });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
@@ -94,7 +95,7 @@ export default function Worlds({ userId }: WorldsProps) {
   // Update world mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<World> }) => {
-      return apiRequest("PUT", `/api/worlds/${id}`, data);
+      return apiRequest("PUT", `/api/worlds/${id}`, { ...data, email: userEmail });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
@@ -117,7 +118,7 @@ export default function Worlds({ userId }: WorldsProps) {
   // Delete world mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest("DELETE", `/api/worlds/${id}`);
+      return apiRequest("DELETE", `/api/worlds/${id}?email=${encodeURIComponent(userEmail)}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });

@@ -345,10 +345,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // All world operations are sent to Azure Function and stored in Azure Table Storage
   app.get("/api/worlds", async (req, res) => {
     try {
-      const { userId } = req.query;
+      const { userId, email } = req.query;
 
       if (!userId || typeof userId !== 'string') {
         return res.status(400).json({ error: "User ID is required" });
+      }
+
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ error: "Email is required" });
       }
 
       const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
@@ -370,6 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           action: "getworlds",
+          email: email,
           userId: userId
         })
       });
@@ -403,6 +408,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (!worldData.userId || !worldData.name) {
         return res.status(400).json({ error: "User ID and name are required" });
+      }
+
+      if (!worldData.email) {
+        return res.status(400).json({ error: "Email is required" });
       }
 
       const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
@@ -456,6 +465,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const updates = req.body;
 
+      if (!updates.email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
       const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
         "https://functionapp120251021090023.azurewebsites.net/api/echo";
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
@@ -506,6 +519,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/worlds/:id", async (req, res) => {
     try {
       const { id } = req.params;
+      const { email } = req.query;
+
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ error: "Email is required" });
+      }
 
       const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
         "https://functionapp120251021090023.azurewebsites.net/api/echo";
@@ -526,7 +544,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           action: "deleteworld",
-          id: id
+          id: id,
+          email: email
         })
       });
 
