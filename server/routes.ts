@@ -597,6 +597,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = JSON.parse(text);
+      
+      // Check if Azure Function actually succeeded
+      if (data.ok === false) {
+        console.error("[WORLDS] Azure Function returned failure:", data.message || "Unknown error");
+        return res.status(400).json({ 
+          ok: false, 
+          error: data.message || "Failed to delete world from Azure Table Storage" 
+        });
+      }
+      
       console.log("[WORLDS] World deleted successfully");
       res.json(data);
     } catch (error) {
