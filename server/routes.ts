@@ -398,6 +398,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Azure Function returns 'items' in PascalCase, transform to camelCase for frontend
       const rawWorlds = data.items || data.worlds || [];
       
+      console.log("[WORLDS] Raw data from Azure Function:", JSON.stringify(rawWorlds, null, 2));
+      
       // Transform PascalCase to camelCase
       const worlds = rawWorlds.map((world: any) => ({
         id: world.Id || world.id,
