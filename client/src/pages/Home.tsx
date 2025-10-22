@@ -46,7 +46,14 @@ export default function Home() {
     queryKey: ["/api/worlds", userId],
     queryFn: async () => {
       if (!userId) return { ok: true, worlds: [] };
-      const response = await fetch(`/api/worlds?userId=${userId}`);
+      
+      const userDataStr = localStorage.getItem('user_data');
+      const userData = userDataStr ? JSON.parse(userDataStr) : null;
+      const userEmail = userData?.email;
+      
+      if (!userEmail) return { ok: true, worlds: [] };
+      
+      const response = await fetch(`/api/worlds?userId=${userId}&email=${encodeURIComponent(userEmail)}`);
       if (!response.ok) throw new Error("Failed to fetch worlds");
       return response.json();
     },
