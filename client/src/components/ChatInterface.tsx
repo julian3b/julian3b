@@ -24,7 +24,7 @@ type ChatInterfaceProps = {
   initialMessages?: Message[];
   userId: string;
   userEmail: string;
-  worldName?: string; // Optional world name for dedicated world chats
+  world?: World; // Optional preset world for dedicated world chats
 };
 
 export function ChatInterface({
@@ -32,7 +32,7 @@ export function ChatInterface({
   initialMessages = [],
   userId,
   userEmail,
-  worldName,
+  world,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
@@ -50,11 +50,12 @@ export function ChatInterface({
       if (!response.ok) throw new Error("Failed to fetch worlds");
       return response.json();
     },
-    enabled: !worldName && !!userEmail && !!userId, // Only fetch if not a dedicated world chat and have credentials
+    enabled: !world && !!userEmail && !!userId, // Only fetch if not a dedicated world chat and have credentials
   });
 
   const worlds = worldsData?.worlds || [];
-  const selectedWorld = worlds.find((w) => w.id === selectedWorldId);
+  // Use preset world if provided, otherwise use selected world from dropdown
+  const selectedWorld = world || worlds.find((w) => w.id === selectedWorldId);
 
   // Update messages when initialMessages changes
   useEffect(() => {
@@ -101,8 +102,8 @@ export function ChatInterface({
         additionalSettings: selectedWorld.additionalSettings,
       } : undefined;
 
-      // Send message with full conversation history and optional world settings
-      const response = await onSendMessage(content, messages, worldSettings);
+      // Send message with full conversation history (including the user's new message) and optional world settings
+      const response = await onSendMessage(content, updatedMessages, worldSettings);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -128,7 +129,7 @@ export function ChatInterface({
   return (
     <div className="flex flex-col h-full">
       {/* World Selector - only show in main chat, not in dedicated world chats */}
-      {!worldName && worlds.length > 0 && (
+      {!world && worlds.length > 0 && (
         <div className="border-b border-border bg-background p-4">
           <div className="max-w-4xl mx-auto flex items-center gap-3">
             <Globe className="w-5 h-5 text-muted-foreground" />

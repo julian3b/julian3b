@@ -237,24 +237,12 @@ export default function Home() {
               
               return (
                 <ChatInterface 
-                  onSendMessage={(message, history) => handleSendMessage(message, history, {
-                    worldId: world.id,
-                    model: world.model,
-                    temperature: world.temperature,
-                    maxTokens: world.maxTokens,
-                    responseStyle: world.responseStyle,
-                    conversationStyle: world.conversationStyle,
-                    customPersonality: world.customPersonality,
-                    characters: world.characters,
-                    events: world.events,
-                    scenario: world.scenario,
-                    places: world.places,
-                    additionalSettings: world.additionalSettings,
-                  })}
+                  key={world.id}
+                  onSendMessage={handleSendMessage}
                   initialMessages={[]}
                   userId={userId}
                   userEmail={userEmail}
-                  worldName={world.name}
+                  world={world}
                 />
               );
             })()}
