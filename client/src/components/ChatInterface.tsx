@@ -23,19 +23,21 @@ type ChatInterfaceProps = {
   onSendMessage: (message: string, history: Message[], worldSettings?: any) => Promise<any>;
   initialMessages?: Message[];
   userId: string;
+  worldName?: string; // Optional world name for dedicated world chats
 };
 
 export function ChatInterface({
   onSendMessage,
   initialMessages = [],
   userId,
+  worldName,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch worlds for the user
+  // Only fetch worlds if this is the main chat (not a dedicated world chat)
   const { data: worldsData } = useQuery<{ ok: boolean; worlds: World[] }>({
     queryKey: ["/api/worlds", userId],
     queryFn: async () => {
@@ -43,6 +45,7 @@ export function ChatInterface({
       if (!response.ok) throw new Error("Failed to fetch worlds");
       return response.json();
     },
+    enabled: !worldName, // Only fetch if not a dedicated world chat
   });
 
   const worlds = worldsData?.worlds || [];
@@ -113,8 +116,8 @@ export function ChatInterface({
 
   return (
     <div className="flex flex-col h-full">
-      {/* World Selector */}
-      {worlds.length > 0 && (
+      {/* World Selector - only show in main chat, not in dedicated world chats */}
+      {!worldName && worlds.length > 0 && (
         <div className="border-b border-border bg-background p-4">
           <div className="max-w-4xl mx-auto flex items-center gap-3">
             <Globe className="w-5 h-5 text-muted-foreground" />

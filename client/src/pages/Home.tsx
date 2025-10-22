@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { TabNavigation } from "@/components/TabNavigation";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -7,6 +8,7 @@ import { LandingPage } from "@/components/LandingPage";
 import Worlds from "@/pages/Worlds";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
+import type { World } from "@shared/schema";
 
 function getUserId(): string {
   const STORAGE_KEY = 'chatbot_user_id';
@@ -39,9 +41,28 @@ export default function Home() {
   const [chatHistory, setChatHistory] = useState<Message[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
+  // Fetch worlds for dynamic tabs
+  const { data: worldsData } = useQuery<{ ok: boolean; worlds: World[] }>({
+    queryKey: ["/api/worlds", userId],
+    queryFn: async () => {
+      if (!userId) return { ok: true, worlds: [] };
+      const response = await fetch(`/api/worlds?userId=${userId}`);
+      if (!response.ok) throw new Error("Failed to fetch worlds");
+      return response.json();
+    },
+    enabled: !!userId && isAuthenticated,
+  });
+
+  const worlds = worldsData?.worlds || [];
+
+  // Create dynamic tabs: Chat, World Settings, then one tab per world
   const tabs = [
     { id: "chat", label: "Chat" },
-    { id: "worlds", label: "Worlds" },
+    { id: "world-settings", label: "World Settings" },
+    ...worlds.map(world => ({
+      id: `world-${world.id}`,
+      label: world.name,
+    })),
   ];
 
   useEffect(() => {
@@ -182,7 +203,28 @@ export default function Home() {
                 userId={userId}
               />
             )}
-            {activeTab === "worlds" && <Worlds userId={userId} />}
+            {activeTab === "world-settings" && <Worlds userId={userId} />}
+            {activeTab.startsWith("world-") && activeTab !== "world-settings" && (() => {
+              const worldId = activeTab.replace("world-", "");
+              const world = worlds.find(w => w.id === worldId);
+              if (!world) return null;
+              
+              return (
+                <ChatInterface 
+                  onSendMessage={(message, history) => handleSendMessage(message, history, {
+                    model: world.model,
+                    temperature: world.temperature,
+                    maxTokens: world.maxTokens,
+                    responseStyle: world.responseStyle,
+                    conversationStyle: world.conversationStyle,
+                    customPersonality: world.customPersonality,
+                  })}
+                  initialMessages={[]}
+                  userId={userId}
+                  worldName={world.name}
+                />
+              );
+            })()}
           </>
         )}
       </main>
