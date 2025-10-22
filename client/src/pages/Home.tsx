@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { TabNavigation } from "@/components/TabNavigation";
 import { ChatInterface } from "@/components/ChatInterface";
-import { PlaceholderTab } from "@/components/PlaceholderTab";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { UserPanel } from "@/components/UserPanel";
 import { LandingPage } from "@/components/LandingPage";
+import Worlds from "@/pages/Worlds";
 import { Button } from "@/components/ui/button";
 import { User } from "lucide-react";
 
@@ -41,7 +41,7 @@ export default function Home() {
 
   const tabs = [
     { id: "chat", label: "Chat" },
-    { id: "custom", label: "Custom Tab" },
+    { id: "worlds", label: "Worlds" },
   ];
 
   useEffect(() => {
@@ -180,7 +180,7 @@ export default function Home() {
                 initialMessages={chatHistory}
               />
             )}
-            {activeTab === "custom" && <PlaceholderTab />}
+            {activeTab === "worlds" && <Worlds userId={userId} />}
           </>
         )}
       </main>
