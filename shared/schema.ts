@@ -24,7 +24,7 @@ export const userSettingsSchema = z.object({
   maxTokens: z.number().min(100).max(4000).default(2000),
   responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step"]).default("balanced"),
   conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic"]).default("friendly"),
-  customPersonality: z.string().max(500).default(""),
+  customPersonality: z.string().max(5000).default(""),
 });
 
 export type UserSettings = z.infer<typeof userSettingsSchema>;
@@ -40,12 +40,12 @@ export const worldSchema = z.object({
   maxTokens: z.number().min(100).max(4000).default(2000),
   responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step"]).default("balanced"),
   conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic"]).default("friendly"),
-  customPersonality: z.string().max(500).default(""),
-  characters: z.string().max(1000).default(""),
-  events: z.string().max(1000).default(""),
-  scenario: z.string().max(1000).default(""),
-  places: z.string().max(1000).default(""),
-  additionalSettings: z.string().max(1000).default(""),
+  customPersonality: z.string().max(5000).default(""),
+  characters: z.string().max(5000).default(""),
+  events: z.string().max(5000).default(""),
+  scenario: z.string().max(5000).default(""),
+  places: z.string().max(5000).default(""),
+  additionalSettings: z.string().max(5000).default(""),
   createdAt: z.number().default(() => Date.now()),
 });
 

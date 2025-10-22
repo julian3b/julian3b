@@ -118,18 +118,18 @@ World settings are sent as per-request overrides to the Azure Function, allowing
   - `maxTokens`: Response length limit (100-4000, default 2000)
   - `responseStyle`: Response format (concise, balanced, detailed, comprehensive, bullet-points, step-by-step)
   - `conversationStyle`: Tone and personality (professional, casual, friendly, technical, enthusiastic, witty, empathetic, academic, socratic)
-  - `customPersonality`: Custom system prompt (0-500 characters)
+  - `customPersonality`: Custom system prompt (0-5000 characters)
 - `worldSchema` - Zod schema for separate chat contexts with unique AI personalities:
   - `id`: Unique world identifier
   - `userId`: Owner of the world
   - `name`: Display name (1-100 characters)
   - `description`: Optional description (0-500 characters)
   - All AI settings fields from userSettingsSchema
-  - `characters`: Character descriptions (0-1000 characters)
-  - `events`: Event descriptions and timeline (0-1000 characters)
-  - `scenario`: Scenario or context description (0-1000 characters)
-  - `places`: Location and setting descriptions (0-1000 characters)
-  - `additionalSettings`: Additional custom settings or notes (0-1000 characters)
+  - `characters`: Character descriptions (0-5000 characters)
+  - `events`: Event descriptions and timeline (0-5000 characters)
+  - `scenario`: Scenario or context description (0-5000 characters)
+  - `places`: Location and setting descriptions (0-5000 characters)
+  - `additionalSettings`: Additional custom settings or notes (0-5000 characters)
   - `createdAt`: Timestamp of creation
 - Schema validation using Zod via drizzle-zod
 - Migration support configured in `drizzle.config.ts`
