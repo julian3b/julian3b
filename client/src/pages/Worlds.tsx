@@ -95,7 +95,7 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
   // Update world mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<World> }) => {
-      return apiRequest("PUT", `/api/worlds/${id}`, { ...data, email: userEmail });
+      return apiRequest("PUT", `/api/worlds/${id}`, { ...data, userId, email: userEmail });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
