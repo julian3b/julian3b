@@ -653,6 +653,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Add world-specific settings as per-request overrides if provided
       if (worldSettings) {
+        requestBody.action = 'addworldchat';
+        requestBody.worldId = worldSettings.worldId;
         requestBody.model = worldSettings.model;
         requestBody.temperature = worldSettings.temperature;
         requestBody.maxTokens = worldSettings.maxTokens;
