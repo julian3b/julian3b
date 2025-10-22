@@ -507,7 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log("[WORLDS] Updating world in Azure Table Storage");
+      console.log("[WORLDS] Updating world in Azure Table Storage using editworld action");
 
       const response = await fetch(fullUrl, {
         method: "POST",
@@ -516,8 +516,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
         },
         body: JSON.stringify({
-          action: "updateworld",
-          id: id,
+          action: "editworld",
+          rowKey: id,
           ...updates
         })
       });

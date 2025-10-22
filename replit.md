@@ -156,7 +156,7 @@ World settings are sent as per-request overrides to the Azure Function, allowing
 - `saveSettings` - Persist user's AI preferences
 - `createworld` - Create a new world and store in Azure Table Storage
 - `getworlds` - Retrieve all worlds for a user from Azure Table Storage
-- `updateworld` - Update an existing world in Azure Table Storage
+- `editworld` - Update an existing world in Azure Table Storage (takes email, rowKey, and all world parameters)
 - `deleteworld` - Delete a world from Azure Table Storage
 
 **Security Implementation:**
