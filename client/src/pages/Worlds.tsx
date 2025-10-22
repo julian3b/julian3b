@@ -66,7 +66,7 @@ export default function Worlds({ userId }: WorldsProps) {
   // Create world mutation
   const createMutation = useMutation({
     mutationFn: async (data: InsertWorld) => {
-      return apiRequest("/api/worlds", "POST", data);
+      return apiRequest("POST", "/api/worlds", data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
@@ -89,7 +89,7 @@ export default function Worlds({ userId }: WorldsProps) {
   // Update world mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<World> }) => {
-      return apiRequest(`/api/worlds/${id}`, "PUT", data);
+      return apiRequest("PUT", `/api/worlds/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
@@ -112,7 +112,7 @@ export default function Worlds({ userId }: WorldsProps) {
   // Delete world mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/worlds/${id}`, "DELETE");
+      return apiRequest("DELETE", `/api/worlds/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
