@@ -41,6 +41,11 @@ export const worldSchema = z.object({
   responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step"]).default("balanced"),
   conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic"]).default("friendly"),
   customPersonality: z.string().max(500).default(""),
+  characters: z.string().max(1000).default(""),
+  events: z.string().max(1000).default(""),
+  scenario: z.string().max(1000).default(""),
+  places: z.string().max(1000).default(""),
+  additionalSettings: z.string().max(1000).default(""),
   createdAt: z.number().default(() => Date.now()),
 });
 

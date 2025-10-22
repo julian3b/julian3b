@@ -218,6 +218,11 @@ export default function Home() {
                     responseStyle: world.responseStyle,
                     conversationStyle: world.conversationStyle,
                     customPersonality: world.customPersonality,
+                    characters: world.characters,
+                    events: world.events,
+                    scenario: world.scenario,
+                    places: world.places,
+                    additionalSettings: world.additionalSettings,
                   })}
                   initialMessages={[]}
                   userId={userId}

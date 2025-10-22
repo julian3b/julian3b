@@ -6,6 +6,8 @@ This is a full-stack AI chatbot web application built with React, Express, and T
 
 ## Recent Changes
 
+- **October 22, 2025**: Added world-building fields to World Settings - characters, events, scenario, places, and additional settings for rich context
+- **October 22, 2025**: Redesigned interface - "World Settings" tab for configuration, dynamic tabs for each world's dedicated chat
 - **October 22, 2025**: Implemented "Worlds" feature - users can create separate chat contexts with their own AI settings and personalities
 - **October 22, 2025**: Expanded AI customization options - added 6 response styles and 9 conversation styles for enhanced personalization
 - **October 21, 2025**: Added conversation history context to chat messages - AI now receives last 10 messages for conversation context
@@ -93,6 +95,7 @@ Worlds are separate chat contexts that allow users to create different AI person
 - AI model selection (GPT-3.5 Turbo, GPT-4, GPT-4 Turbo)
 - Temperature, max tokens, response style, conversation style
 - Custom personality instructions
+- Characters, events, scenario, places, and additional settings (context fields for rich world-building)
 - Independent conversation history (planned feature)
 
 When a user selects a world in the chat interface, all messages in that conversation use the world's specific AI settings instead of the global user settings. This enables use cases like:
@@ -121,6 +124,11 @@ World settings are sent as per-request overrides to the Azure Function, allowing
   - `name`: Display name (1-100 characters)
   - `description`: Optional description (0-500 characters)
   - All AI settings fields from userSettingsSchema
+  - `characters`: Character descriptions (0-1000 characters)
+  - `events`: Event descriptions and timeline (0-1000 characters)
+  - `scenario`: Scenario or context description (0-1000 characters)
+  - `places`: Location and setting descriptions (0-1000 characters)
+  - `additionalSettings`: Additional custom settings or notes (0-1000 characters)
   - `createdAt`: Timestamp of creation
 - Schema validation using Zod via drizzle-zod
 - Migration support configured in `drizzle.config.ts`

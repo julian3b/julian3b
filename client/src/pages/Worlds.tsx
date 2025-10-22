@@ -51,6 +51,11 @@ export default function Worlds({ userId }: WorldsProps) {
     responseStyle: "balanced",
     conversationStyle: "friendly",
     customPersonality: "",
+    characters: "",
+    events: "",
+    scenario: "",
+    places: "",
+    additionalSettings: "",
   });
 
   // Fetch worlds
@@ -141,6 +146,11 @@ export default function Worlds({ userId }: WorldsProps) {
       responseStyle: "balanced",
       conversationStyle: "friendly",
       customPersonality: "",
+      characters: "",
+      events: "",
+      scenario: "",
+      places: "",
+      additionalSettings: "",
     });
   };
 
@@ -176,6 +186,11 @@ export default function Worlds({ userId }: WorldsProps) {
       responseStyle: world.responseStyle,
       conversationStyle: world.conversationStyle,
       customPersonality: world.customPersonality,
+      characters: world.characters,
+      events: world.events,
+      scenario: world.scenario,
+      places: world.places,
+      additionalSettings: world.additionalSettings,
     });
   };
 
@@ -436,6 +451,86 @@ export default function Worlds({ userId }: WorldsProps) {
                 />
                 <p className="text-sm text-muted-foreground">
                   {formData.customPersonality?.length || 0}/500
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="characters">Characters</Label>
+                <Textarea
+                  id="characters"
+                  placeholder="Describe the characters in this world..."
+                  value={formData.characters}
+                  onChange={(e) => setFormData({ ...formData, characters: e.target.value })}
+                  rows={3}
+                  maxLength={1000}
+                  data-testid="textarea-world-characters"
+                />
+                <p className="text-sm text-muted-foreground">
+                  {formData.characters?.length || 0}/1000
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="events">Events</Label>
+                <Textarea
+                  id="events"
+                  placeholder="Describe important events or timeline..."
+                  value={formData.events}
+                  onChange={(e) => setFormData({ ...formData, events: e.target.value })}
+                  rows={3}
+                  maxLength={1000}
+                  data-testid="textarea-world-events"
+                />
+                <p className="text-sm text-muted-foreground">
+                  {formData.events?.length || 0}/1000
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="scenario">Scenario</Label>
+                <Textarea
+                  id="scenario"
+                  placeholder="Describe the scenario or context..."
+                  value={formData.scenario}
+                  onChange={(e) => setFormData({ ...formData, scenario: e.target.value })}
+                  rows={3}
+                  maxLength={1000}
+                  data-testid="textarea-world-scenario"
+                />
+                <p className="text-sm text-muted-foreground">
+                  {formData.scenario?.length || 0}/1000
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="places">Places</Label>
+                <Textarea
+                  id="places"
+                  placeholder="Describe locations and settings..."
+                  value={formData.places}
+                  onChange={(e) => setFormData({ ...formData, places: e.target.value })}
+                  rows={3}
+                  maxLength={1000}
+                  data-testid="textarea-world-places"
+                />
+                <p className="text-sm text-muted-foreground">
+                  {formData.places?.length || 0}/1000
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="additionalSettings">Additional Settings</Label>
+                <Textarea
+                  id="additionalSettings"
+                  placeholder="Any other settings or notes..."
+                  value={formData.additionalSettings}
+                  onChange={(e) => setFormData({ ...formData, additionalSettings: e.target.value })}
+                  rows={3}
+                  maxLength={1000}
+                  data-testid="textarea-world-additional-settings"
+                />
+                <p className="text-sm text-muted-foreground">
+                  {formData.additionalSettings?.length || 0}/1000
                 </p>
               </div>
             </div>
