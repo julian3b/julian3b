@@ -394,8 +394,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = JSON.parse(text);
-      console.log(`[WORLDS] Retrieved ${data.worlds?.length || 0} worlds`);
-      res.json(data);
+      
+      // Azure Function returns 'items' but frontend expects 'worlds'
+      const worlds = data.items || data.worlds || [];
+      console.log(`[WORLDS] Retrieved ${worlds.length} worlds`);
+      
+      res.json({ ok: true, worlds });
     } catch (error) {
       console.error("Error fetching worlds:", error);
       res.status(500).json({ error: "Failed to fetch worlds" });
