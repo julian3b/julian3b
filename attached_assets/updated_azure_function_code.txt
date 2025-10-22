@@ -111,6 +111,15 @@ private string BuildSystemPrompt(UserSettings settings)
             case "detailed":
                 prompt += " Provide thorough and detailed explanations.";
                 break;
+            case "comprehensive":
+                prompt += " Provide comprehensive, in-depth responses with examples and thorough explanations.";
+                break;
+            case "bullet-points":
+                prompt += " Format your responses as organized bullet points and lists whenever possible.";
+                break;
+            case "step-by-step":
+                prompt += " Break down your responses into clear, sequential step-by-step instructions.";
+                break;
             case "balanced":
             default:
                 prompt += " Provide clear, balanced responses.";
@@ -124,16 +133,31 @@ private string BuildSystemPrompt(UserSettings settings)
         switch (settings.ConversationStyle.ToLower())
         {
             case "professional":
-                prompt += " Maintain a professional tone.";
+                prompt += " Maintain a professional, formal, and polished tone.";
                 break;
             case "casual":
-                prompt += " Use a casual, friendly tone.";
+                prompt += " Use a casual, relaxed, and conversational tone.";
                 break;
             case "friendly":
-                prompt += " Be warm and friendly.";
+                prompt += " Be warm, approachable, and friendly.";
                 break;
             case "technical":
-                prompt += " Use technical language and be precise.";
+                prompt += " Use technical language, be precise, and focus on specialized terminology.";
+                break;
+            case "enthusiastic":
+                prompt += " Be upbeat, encouraging, and enthusiastic in your responses.";
+                break;
+            case "witty":
+                prompt += " Use humor, cleverness, and wit in your responses when appropriate.";
+                break;
+            case "empathetic":
+                prompt += " Be supportive, understanding, and empathetic to the user's needs.";
+                break;
+            case "academic":
+                prompt += " Maintain a scholarly, formal, and academic tone with proper citations and formal language.";
+                break;
+            case "socratic":
+                prompt += " Use the Socratic method: ask thought-provoking questions to guide the user to insights.";
                 break;
         }
     }

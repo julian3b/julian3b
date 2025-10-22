@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application built with React, Express, and T
 
 ## Recent Changes
 
+- **October 22, 2025**: Expanded AI customization options - added 6 response styles and 9 conversation styles for enhanced personalization
 - **October 21, 2025**: Added conversation history context to chat messages - AI now receives last 10 messages for conversation context
 - **October 21, 2025**: Implemented comprehensive settings panel with AI customization options (model, temperature, response style, etc.)
 - **October 21, 2025**: Added automatic chat history loading on user authentication
@@ -90,8 +91,8 @@ The application delegates authentication to Azure Functions rather than implemen
   - `model`: AI model selection (gpt-3.5-turbo, gpt-4, gpt-4-turbo)
   - `temperature`: Creativity level (0-2, default 0.7)
   - `maxTokens`: Response length limit (100-4000, default 2000)
-  - `responseStyle`: Verbosity preference (concise, balanced, detailed)
-  - `conversationStyle`: Tone setting (professional, casual, friendly, technical)
+  - `responseStyle`: Response format (concise, balanced, detailed, comprehensive, bullet-points, step-by-step)
+  - `conversationStyle`: Tone and personality (professional, casual, friendly, technical, enthusiastic, witty, empathetic, academic, socratic)
   - `customPersonality`: Custom system prompt (0-500 characters)
 - Schema validation using Zod via drizzle-zod
 - Migration support configured in `drizzle.config.ts`

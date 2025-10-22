@@ -202,13 +202,16 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
                 <SelectValue placeholder="Select style" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="concise">Concise (Brief answers)</SelectItem>
-                <SelectItem value="balanced">Balanced (Standard)</SelectItem>
-                <SelectItem value="detailed">Detailed (Thorough explanations)</SelectItem>
+                <SelectItem value="concise">Concise - Brief, to-the-point answers</SelectItem>
+                <SelectItem value="balanced">Balanced - Clear, moderate length</SelectItem>
+                <SelectItem value="detailed">Detailed - Thorough explanations</SelectItem>
+                <SelectItem value="comprehensive">Comprehensive - In-depth with examples</SelectItem>
+                <SelectItem value="bullet-points">Bullet Points - Organized lists</SelectItem>
+                <SelectItem value="step-by-step">Step-by-Step - Sequential instructions</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground">
-              How verbose the AI responses should be
+              How the AI structures and formats responses
             </p>
           </div>
 
@@ -223,10 +226,15 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
                 <SelectValue placeholder="Select style" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="professional">Professional</SelectItem>
-                <SelectItem value="casual">Casual</SelectItem>
-                <SelectItem value="friendly">Friendly</SelectItem>
-                <SelectItem value="technical">Technical</SelectItem>
+                <SelectItem value="professional">Professional - Formal and polished</SelectItem>
+                <SelectItem value="casual">Casual - Relaxed and conversational</SelectItem>
+                <SelectItem value="friendly">Friendly - Warm and approachable</SelectItem>
+                <SelectItem value="technical">Technical - Precise and specialized</SelectItem>
+                <SelectItem value="enthusiastic">Enthusiastic - Upbeat and encouraging</SelectItem>
+                <SelectItem value="witty">Witty - Humorous and clever</SelectItem>
+                <SelectItem value="empathetic">Empathetic - Supportive and understanding</SelectItem>
+                <SelectItem value="academic">Academic - Scholarly and formal</SelectItem>
+                <SelectItem value="socratic">Socratic - Questioning and thought-provoking</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-sm text-muted-foreground">
