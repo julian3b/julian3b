@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { queryClient } from "@/lib/queryClient";
 import { TabNavigation } from "@/components/TabNavigation";
 import { ChatInterface } from "@/components/ChatInterface";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -70,7 +71,8 @@ export default function Home() {
   ];
 
   useEffect(() => {
-    setUserId(getUserId());
+    const uid = getUserId();
+    setUserId(uid);
     
     // Check if user is authenticated
     const userDataStr = localStorage.getItem('user_data');
@@ -80,7 +82,13 @@ export default function Home() {
     // Get user email for queries
     if (isAuth && userDataStr) {
       const userData = JSON.parse(userDataStr);
-      setUserEmail(userData?.email || "");
+      const email = userData?.email || "";
+      setUserEmail(email);
+      
+      // Invalidate worlds query to trigger refetch with email
+      if (email && uid) {
+        queryClient.invalidateQueries({ queryKey: ["/api/worlds", uid, email] });
+      }
     }
 
     // Fetch chat history if authenticated
