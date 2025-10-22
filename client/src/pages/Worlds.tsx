@@ -165,6 +165,17 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
       return;
     }
 
+    // Validate world name - only letters, numbers, dash, and underscore allowed
+    const validNamePattern = /^[a-zA-Z0-9_-]+$/;
+    if (!validNamePattern.test(formData.name)) {
+      toast({
+        title: "Error",
+        description: "World name can only contain letters, numbers, dashes, and underscores",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Check for duplicate world name
     const duplicateName = worlds.some(
       (world) => world.name.toLowerCase() === formData.name!.toLowerCase()
@@ -189,6 +200,17 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
       toast({
         title: "Error",
         description: "World name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate world name - only letters, numbers, dash, and underscore allowed
+    const validNamePattern = /^[a-zA-Z0-9_-]+$/;
+    if (!validNamePattern.test(formData.name)) {
+      toast({
+        title: "Error",
+        description: "World name can only contain letters, numbers, dashes, and underscores",
         variant: "destructive",
       });
       return;
