@@ -117,8 +117,8 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
 
   // Delete world mutation
   const deleteMutation = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      return apiRequest("DELETE", `/api/worlds/${id}?email=${encodeURIComponent(userEmail)}&name=${encodeURIComponent(name)}`);
+    mutationFn: async (id: string) => {
+      return apiRequest("DELETE", `/api/worlds/${id}?email=${encodeURIComponent(userEmail)}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
@@ -258,9 +258,9 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
     });
   };
 
-  const handleDelete = (id: string, name: string) => {
+  const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this world? This cannot be undone.")) {
-      deleteMutation.mutate({ id, name });
+      deleteMutation.mutate(id);
     }
   };
 
@@ -351,7 +351,7 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                   <Button
                     variant="destructive"
                     size="sm"
-                    onClick={() => handleDelete(world.id, world.name)}
+                    onClick={() => handleDelete(world.id)}
                     data-testid={`button-delete-world-${world.id}`}
                   >
                     <Trash2 className="w-4 h-4" />
