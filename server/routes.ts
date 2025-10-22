@@ -342,7 +342,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Worlds endpoints - manage separate chat contexts with their own AI settings
-  // All world operations are proxied to Azure Function and stored in Azure Table Storage
   app.get("/api/worlds", async (req, res) => {
     try {
       const { userId } = req.query;
@@ -351,46 +350,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User ID is required" });
       }
 
-      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
-        "https://functionapp120251021090023.azurewebsites.net/api/echo";
-      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
-
-      const params = new URLSearchParams({
-        ...(azureFunctionKey && { code: azureFunctionKey })
-      });
-
-      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log("[WORLDS] Fetching worlds for user from Azure Table Storage");
-
-      const response = await fetch(fullUrl, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
-        },
-        body: JSON.stringify({
-          action: "getworlds",
-          userId: userId
-        })
-      });
-
-      console.log("[WORLDS] Azure Function responded with status:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[WORLDS] Azure Function error response");
-        throw new Error(`Azure Function error: ${response.status}`);
-      }
-
-      const text = await response.text();
-      if (!text) {
-        console.log('[WORLDS] Empty response from Azure Function');
-        return res.json({ ok: true, worlds: [] });
-      }
-
-      const data = JSON.parse(text);
-      console.log(`[WORLDS] Retrieved ${data.worlds?.length || 0} worlds`);
-      res.json(data);
+      const worlds = await storage.getWorldsByUser(userId);
+      res.json({ ok: true, worlds });
     } catch (error) {
       console.error("Error fetching worlds:", error);
       res.status(500).json({ error: "Failed to fetch worlds" });
@@ -405,46 +366,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: "User ID and name are required" });
       }
 
-      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
-        "https://functionapp120251021090023.azurewebsites.net/api/echo";
-      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
-
-      const params = new URLSearchParams({
-        ...(azureFunctionKey && { code: azureFunctionKey })
-      });
-
-      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log("[WORLDS] Creating new world in Azure Table Storage");
-
-      const response = await fetch(fullUrl, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
-        },
-        body: JSON.stringify({
-          action: "createworld",
-          ...worldData
-        })
-      });
-
-      console.log("[WORLDS] Azure Function responded with status:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[WORLDS] Azure Function error response");
-        throw new Error(`Azure Function error: ${response.status}`);
-      }
-
-      const text = await response.text();
-      if (!text) {
-        console.log('[WORLDS] Empty response from Azure Function');
-        throw new Error('Azure Function returned empty response');
-      }
-
-      const data = JSON.parse(text);
-      console.log("[WORLDS] World created successfully");
-      res.json(data);
+      const world = await storage.createWorld(worldData);
+      res.json({ ok: true, world });
     } catch (error) {
       console.error("Error creating world:", error);
       res.status(500).json({ error: "Failed to create world" });
@@ -456,47 +379,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const updates = req.body;
 
-      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
-        "https://functionapp120251021090023.azurewebsites.net/api/echo";
-      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
-
-      const params = new URLSearchParams({
-        ...(azureFunctionKey && { code: azureFunctionKey })
-      });
-
-      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log("[WORLDS] Updating world in Azure Table Storage");
-
-      const response = await fetch(fullUrl, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
-        },
-        body: JSON.stringify({
-          action: "updateworld",
-          id: id,
-          ...updates
-        })
-      });
-
-      console.log("[WORLDS] Azure Function responded with status:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[WORLDS] Azure Function error response");
-        throw new Error(`Azure Function error: ${response.status}`);
+      const world = await storage.updateWorld(id, updates);
+      if (!world) {
+        return res.status(404).json({ error: "World not found" });
       }
 
-      const text = await response.text();
-      if (!text) {
-        console.log('[WORLDS] Empty response from Azure Function');
-        throw new Error('Azure Function returned empty response');
-      }
-
-      const data = JSON.parse(text);
-      console.log("[WORLDS] World updated successfully");
-      res.json(data);
+      res.json({ ok: true, world });
     } catch (error) {
       console.error("Error updating world:", error);
       res.status(500).json({ error: "Failed to update world" });
@@ -507,46 +395,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
 
-      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
-        "https://functionapp120251021090023.azurewebsites.net/api/echo";
-      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
-
-      const params = new URLSearchParams({
-        ...(azureFunctionKey && { code: azureFunctionKey })
-      });
-
-      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log("[WORLDS] Deleting world from Azure Table Storage");
-
-      const response = await fetch(fullUrl, {
-        method: "POST",
-        headers: {
-          'Content-Type': 'application/json',
-          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
-        },
-        body: JSON.stringify({
-          action: "deleteworld",
-          id: id
-        })
-      });
-
-      console.log("[WORLDS] Azure Function responded with status:", response.status);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error("[WORLDS] Azure Function error response");
-        throw new Error(`Azure Function error: ${response.status}`);
+      const deleted = await storage.deleteWorld(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "World not found" });
       }
 
-      const text = await response.text();
-      if (!text) {
-        console.log('[WORLDS] Empty response from Azure Function');
-        return res.json({ ok: true });
-      }
-
-      const data = JSON.parse(text);
-      console.log("[WORLDS] World deleted successfully");
-      res.json(data);
+      res.json({ ok: true });
     } catch (error) {
       console.error("Error deleting world:", error);
       res.status(500).json({ error: "Failed to delete world" });
