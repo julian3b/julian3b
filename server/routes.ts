@@ -341,6 +341,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Worlds endpoints - manage separate chat contexts with their own AI settings
+  app.get("/api/worlds", async (req, res) => {
+    try {
+      const { userId } = req.query;
+
+      if (!userId || typeof userId !== 'string') {
+        return res.status(400).json({ error: "User ID is required" });
+      }
+
+      const worlds = await storage.getWorldsByUser(userId);
+      res.json({ ok: true, worlds });
+    } catch (error) {
+      console.error("Error fetching worlds:", error);
+      res.status(500).json({ error: "Failed to fetch worlds" });
+    }
+  });
+
+  app.post("/api/worlds", async (req, res) => {
+    try {
+      const worldData = req.body;
+
+      if (!worldData.userId || !worldData.name) {
+        return res.status(400).json({ error: "User ID and name are required" });
+      }
+
+      const world = await storage.createWorld(worldData);
+      res.json({ ok: true, world });
+    } catch (error) {
+      console.error("Error creating world:", error);
+      res.status(500).json({ error: "Failed to create world" });
+    }
+  });
+
+  app.put("/api/worlds/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updates = req.body;
+
+      const world = await storage.updateWorld(id, updates);
+      if (!world) {
+        return res.status(404).json({ error: "World not found" });
+      }
+
+      res.json({ ok: true, world });
+    } catch (error) {
+      console.error("Error updating world:", error);
+      res.status(500).json({ error: "Failed to update world" });
+    }
+  });
+
+  app.delete("/api/worlds/:id", async (req, res) => {
+    try {
+      const { id } = req.params;
+
+      const deleted = await storage.deleteWorld(id);
+      if (!deleted) {
+        return res.status(404).json({ error: "World not found" });
+      }
+
+      res.json({ ok: true });
+    } catch (error) {
+      console.error("Error deleting world:", error);
+      res.status(500).json({ error: "Failed to delete world" });
+    }
+  });
+
   // Chat endpoint - proxies to Azure Function (avoids CORS)
   app.post("/api/chat", async (req, res) => {
     try {
