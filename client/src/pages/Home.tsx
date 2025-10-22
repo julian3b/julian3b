@@ -46,11 +46,15 @@ export default function Home() {
   const { data: worldsData } = useQuery<{ ok: boolean; worlds: World[] }>({
     queryKey: ["/api/worlds", userId, userEmail],
     queryFn: async () => {
+      if (!userEmail || !userId) {
+        throw new Error("User email and ID required");
+      }
       const response = await fetch(`/api/worlds?userId=${userId}&email=${encodeURIComponent(userEmail)}`);
       if (!response.ok) throw new Error("Failed to fetch worlds");
       return response.json();
     },
-    enabled: !!userId && !!userEmail && isAuthenticated,
+    enabled: !!userId && !!userEmail && isAuthenticated && userEmail.length > 0,
+    retry: false,
   });
 
   const worlds = worldsData?.worlds || [];
