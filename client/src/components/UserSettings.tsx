@@ -251,11 +251,11 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
               value={settings.customPersonality}
               onChange={(e) => setSettings({ ...settings, customPersonality: e.target.value })}
               rows={4}
-              maxLength={500}
+              maxLength={5000}
               data-testid="textarea-custom-personality"
             />
             <p className="text-sm text-muted-foreground">
-              Custom instructions to guide the AI's behavior ({settings.customPersonality?.length || 0}/500)
+              Custom instructions to guide the AI's behavior ({settings.customPersonality?.length || 0}/5000)
             </p>
           </div>
         </div>

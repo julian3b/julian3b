@@ -510,11 +510,11 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                   value={formData.customPersonality}
                   onChange={(e) => setFormData({ ...formData, customPersonality: e.target.value })}
                   rows={4}
-                  maxLength={500}
+                  maxLength={5000}
                   data-testid="textarea-world-custom-personality"
                 />
                 <p className="text-sm text-muted-foreground">
-                  {formData.customPersonality?.length || 0}/500
+                  {formData.customPersonality?.length || 0}/5000
                 </p>
               </div>
 
@@ -526,11 +526,11 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                   value={formData.characters}
                   onChange={(e) => setFormData({ ...formData, characters: e.target.value })}
                   rows={3}
-                  maxLength={1000}
+                  maxLength={5000}
                   data-testid="textarea-world-characters"
                 />
                 <p className="text-sm text-muted-foreground">
-                  {formData.characters?.length || 0}/1000
+                  {formData.characters?.length || 0}/5000
                 </p>
               </div>
 
@@ -542,11 +542,11 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                   value={formData.events}
                   onChange={(e) => setFormData({ ...formData, events: e.target.value })}
                   rows={3}
-                  maxLength={1000}
+                  maxLength={5000}
                   data-testid="textarea-world-events"
                 />
                 <p className="text-sm text-muted-foreground">
-                  {formData.events?.length || 0}/1000
+                  {formData.events?.length || 0}/5000
                 </p>
               </div>
 
@@ -558,11 +558,11 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                   value={formData.scenario}
                   onChange={(e) => setFormData({ ...formData, scenario: e.target.value })}
                   rows={3}
-                  maxLength={1000}
+                  maxLength={5000}
                   data-testid="textarea-world-scenario"
                 />
                 <p className="text-sm text-muted-foreground">
-                  {formData.scenario?.length || 0}/1000
+                  {formData.scenario?.length || 0}/5000
                 </p>
               </div>
 
@@ -574,11 +574,11 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                   value={formData.places}
                   onChange={(e) => setFormData({ ...formData, places: e.target.value })}
                   rows={3}
-                  maxLength={1000}
+                  maxLength={5000}
                   data-testid="textarea-world-places"
                 />
                 <p className="text-sm text-muted-foreground">
-                  {formData.places?.length || 0}/1000
+                  {formData.places?.length || 0}/5000
                 </p>
               </div>
 
@@ -590,11 +590,11 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                   value={formData.additionalSettings}
                   onChange={(e) => setFormData({ ...formData, additionalSettings: e.target.value })}
                   rows={3}
-                  maxLength={1000}
+                  maxLength={5000}
                   data-testid="textarea-world-additional-settings"
                 />
                 <p className="text-sm text-muted-foreground">
-                  {formData.additionalSettings?.length || 0}/1000
+                  {formData.additionalSettings?.length || 0}/5000
                 </p>
               </div>
             </div>
