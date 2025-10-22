@@ -395,12 +395,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = JSON.parse(text);
       
-      console.log("[WORLDS] Azure Function response:", JSON.stringify(data, null, 2));
+      // Azure Function returns 'items' in PascalCase, transform to camelCase for frontend
+      const rawWorlds = data.items || data.worlds || [];
       
-      // Azure Function returns 'items' but frontend expects 'worlds'
-      const worlds = data.items || data.worlds || [];
+      // Transform PascalCase to camelCase
+      const worlds = rawWorlds.map((world: any) => ({
+        id: world.Id || world.id,
+        userId: world.UserId || world.userId,
+        name: world.Name || world.name,
+        description: world.Description || world.description,
+        model: world.Model || world.model,
+        temperature: world.Temperature ?? world.temperature,
+        maxTokens: world.MaxTokens || world.maxTokens,
+        responseStyle: world.ResponseStyle || world.responseStyle,
+        conversationStyle: world.ConversationStyle || world.conversationStyle,
+        customPersonality: world.CustomPersonality || world.customPersonality || "",
+        characters: world.Characters || world.characters || "",
+        events: world.Events || world.events || "",
+        scenario: world.Scenario || world.scenario || "",
+        places: world.Places || world.places || "",
+        additionalSettings: world.AdditionalSettings || world.additionalSettings || "",
+        createdAt: world.CreatedUtc || world.createdAt,
+      }));
+      
       console.log(`[WORLDS] Retrieved ${worlds.length} worlds`);
-      console.log(`[WORLDS] Worlds data:`, JSON.stringify(worlds, null, 2));
       
       res.json({ ok: true, worlds });
     } catch (error) {
