@@ -164,11 +164,52 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
       });
       return;
     }
+
+    // Check for duplicate world name
+    const duplicateName = worlds.some(
+      (world) => world.name.toLowerCase() === formData.name!.toLowerCase()
+    );
+
+    if (duplicateName) {
+      toast({
+        title: "Error",
+        description: "A world with this name already exists. Please choose a different name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     createMutation.mutate(formData as InsertWorld);
   };
 
   const handleUpdate = () => {
     if (!editingWorld) return;
+
+    if (!formData.name) {
+      toast({
+        title: "Error",
+        description: "World name is required",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Check for duplicate world name (excluding the current world being edited)
+    const duplicateName = worlds.some(
+      (world) => 
+        world.id !== editingWorld.id && 
+        world.name.toLowerCase() === formData.name!.toLowerCase()
+    );
+
+    if (duplicateName) {
+      toast({
+        title: "Error",
+        description: "A world with this name already exists. Please choose a different name.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     updateMutation.mutate({
       id: editingWorld.id,
       data: formData,
