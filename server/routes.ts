@@ -395,9 +395,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = JSON.parse(text);
       
+      console.log("[WORLDS] Azure Function response:", JSON.stringify(data, null, 2));
+      
       // Azure Function returns 'items' but frontend expects 'worlds'
       const worlds = data.items || data.worlds || [];
       console.log(`[WORLDS] Retrieved ${worlds.length} worlds`);
+      console.log(`[WORLDS] Worlds data:`, JSON.stringify(worlds, null, 2));
       
       res.json({ ok: true, worlds });
     } catch (error) {
