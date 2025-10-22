@@ -405,10 +405,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: world.Name || world.name,
         description: world.Description || world.description,
         model: world.Model || world.model,
-        temperature: world.Temperature ?? world.temperature,
-        maxTokens: world.MaxTokens || world.maxTokens,
-        responseStyle: world.ResponseStyle || world.responseStyle,
-        conversationStyle: world.ConversationStyle || world.conversationStyle,
+        temperature: world.Temperature ?? world.temperature ?? 0.7,
+        maxTokens: world.MaxTokens || world.maxTokens || 2000,
+        responseStyle: world.ResponseStyle || world.responseStyle || "balanced",
+        conversationStyle: world.ConversationStyle || world.conversationStyle || "friendly",
         customPersonality: world.CustomPersonality || world.customPersonality || "",
         characters: world.Characters || world.characters || "",
         events: world.Events || world.events || "",
@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: world.CreatedUtc || world.createdAt,
       }));
       
-      console.log(`[WORLDS] Retrieved ${worlds.length} worlds`);
+      console.log(`[WORLDS] Retrieved and transformed ${worlds.length} worlds to camelCase`);
       
       res.json({ ok: true, worlds });
     } catch (error) {
