@@ -87,12 +87,18 @@ export function ChatInterface({
     try {
       // Prepare world-specific settings if a world is selected
       const worldSettings = selectedWorld ? {
+        worldId: selectedWorld.id,
         model: selectedWorld.model,
         temperature: selectedWorld.temperature,
         maxTokens: selectedWorld.maxTokens,
         responseStyle: selectedWorld.responseStyle,
         conversationStyle: selectedWorld.conversationStyle,
         customPersonality: selectedWorld.customPersonality,
+        characters: selectedWorld.characters,
+        events: selectedWorld.events,
+        scenario: selectedWorld.scenario,
+        places: selectedWorld.places,
+        additionalSettings: selectedWorld.additionalSettings,
       } : undefined;
 
       // Send message with full conversation history and optional world settings

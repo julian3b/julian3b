@@ -238,6 +238,7 @@ export default function Home() {
               return (
                 <ChatInterface 
                   onSendMessage={(message, history) => handleSendMessage(message, history, {
+                    worldId: world.id,
                     model: world.model,
                     temperature: world.temperature,
                     maxTokens: world.maxTokens,
