@@ -165,12 +165,12 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
       return;
     }
 
-    // Validate world name - only letters, numbers, dash, and underscore allowed
-    const validNamePattern = /^[a-zA-Z0-9_-]+$/;
+    // Validate world name - only letters, numbers, dash, underscore, and spaces allowed
+    const validNamePattern = /^[a-zA-Z0-9_\- ]+$/;
     if (!validNamePattern.test(formData.name)) {
       toast({
         title: "Error",
-        description: "World name can only contain letters, numbers, dashes, and underscores",
+        description: "World name can only contain letters, numbers, dashes, underscores, and spaces",
         variant: "destructive",
       });
       return;
@@ -205,12 +205,12 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
       return;
     }
 
-    // Validate world name - only letters, numbers, dash, and underscore allowed
-    const validNamePattern = /^[a-zA-Z0-9_-]+$/;
+    // Validate world name - only letters, numbers, dash, underscore, and spaces allowed
+    const validNamePattern = /^[a-zA-Z0-9_\- ]+$/;
     if (!validNamePattern.test(formData.name)) {
       toast({
         title: "Error",
-        description: "World name can only contain letters, numbers, dashes, and underscores",
+        description: "World name can only contain letters, numbers, dashes, underscores, and spaces",
         variant: "destructive",
       });
       return;
