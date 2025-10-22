@@ -423,7 +423,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      
+      const requestBody = {
+        action: "createworld",
+        ...worldData
+      };
+      
       console.log("[WORLDS] Creating new world in Azure Table Storage");
+      console.log("[WORLDS] REQUEST BODY:", JSON.stringify(requestBody, null, 2));
 
       const response = await fetch(fullUrl, {
         method: "POST",
@@ -431,10 +438,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Content-Type': 'application/json',
           ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
         },
-        body: JSON.stringify({
-          action: "createworld",
-          ...worldData
-        })
+        body: JSON.stringify(requestBody)
       });
 
       console.log("[WORLDS] Azure Function responded with status:", response.status);
