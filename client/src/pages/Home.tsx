@@ -111,7 +111,7 @@ export default function Home() {
     }
   };
 
-  const handleSendMessage = async (message: string, history: Message[]) => {
+  const handleSendMessage = async (message: string, history: Message[], worldSettings?: any) => {
     try {
       // Get user's email from localStorage
       const userDataStr = localStorage.getItem('user_data');
@@ -133,7 +133,8 @@ export default function Home() {
           message, 
           userId,
           name: userEmail,
-          history: recentHistory
+          history: recentHistory,
+          worldSettings: worldSettings || null
         })
       });
 
@@ -178,6 +179,7 @@ export default function Home() {
               <ChatInterface 
                 onSendMessage={handleSendMessage} 
                 initialMessages={chatHistory}
+                userId={userId}
               />
             )}
             {activeTab === "worlds" && <Worlds userId={userId} />}

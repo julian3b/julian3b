@@ -1,7 +1,16 @@
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
-import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Loader2, Globe } from "lucide-react";
+import type { World } from "@shared/schema";
 
 type Message = {
   id: string;
@@ -11,17 +20,33 @@ type Message = {
 };
 
 type ChatInterfaceProps = {
-  onSendMessage: (message: string, history: Message[]) => Promise<any>;
+  onSendMessage: (message: string, history: Message[], worldSettings?: any) => Promise<any>;
   initialMessages?: Message[];
+  userId: string;
 };
 
 export function ChatInterface({
   onSendMessage,
   initialMessages = [],
+  userId,
 }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Fetch worlds for the user
+  const { data: worldsData } = useQuery<{ ok: boolean; worlds: World[] }>({
+    queryKey: ["/api/worlds", userId],
+    queryFn: async () => {
+      const response = await fetch(`/api/worlds?userId=${userId}`);
+      if (!response.ok) throw new Error("Failed to fetch worlds");
+      return response.json();
+    },
+  });
+
+  const worlds = worldsData?.worlds || [];
+  const selectedWorld = worlds.find((w) => w.id === selectedWorldId);
 
   // Update messages when initialMessages changes
   useEffect(() => {
@@ -52,8 +77,18 @@ export function ChatInterface({
     setIsLoading(true);
 
     try {
-      // Send message with full conversation history for context
-      const response = await onSendMessage(content, messages);
+      // Prepare world-specific settings if a world is selected
+      const worldSettings = selectedWorld ? {
+        model: selectedWorld.model,
+        temperature: selectedWorld.temperature,
+        maxTokens: selectedWorld.maxTokens,
+        responseStyle: selectedWorld.responseStyle,
+        conversationStyle: selectedWorld.conversationStyle,
+        customPersonality: selectedWorld.customPersonality,
+      } : undefined;
+
+      // Send message with full conversation history and optional world settings
+      const response = await onSendMessage(content, messages, worldSettings);
 
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -78,6 +113,37 @@ export function ChatInterface({
 
   return (
     <div className="flex flex-col h-full">
+      {/* World Selector */}
+      {worlds.length > 0 && (
+        <div className="border-b border-border bg-background p-4">
+          <div className="max-w-4xl mx-auto flex items-center gap-3">
+            <Globe className="w-5 h-5 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">World:</span>
+            <Select
+              value={selectedWorldId || "default"}
+              onValueChange={(value) => setSelectedWorldId(value === "default" ? null : value)}
+            >
+              <SelectTrigger className="w-[300px]" data-testid="select-world">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default (Global Settings)</SelectItem>
+                {worlds.map((world) => (
+                  <SelectItem key={world.id} value={world.id}>
+                    {world.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedWorld && (
+              <span className="text-sm text-muted-foreground">
+                {selectedWorld.model} • {selectedWorld.conversationStyle}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+      
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-6 space-y-6">
           {messages.length === 0 && (

@@ -410,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Chat endpoint - proxies to Azure Function (avoids CORS)
   app.post("/api/chat", async (req, res) => {
     try {
-      const { message, userId, name, history } = req.body;
+      const { message, userId, name, history, worldSettings } = req.body;
 
       if (!message) {
         return res.status(400).json({ error: "Message is required" });
@@ -429,21 +429,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
       
-      // SECURITY: Email, message, and history sent in encrypted POST body (not logged for privacy)
-      console.log("[CHAT] Calling Azure Function (SECURE - email, message, and history in encrypted POST body)");
+      // SECURITY: Email, message, history, and world settings sent in encrypted POST body (not logged for privacy)
+      const logMsg = worldSettings 
+        ? "[CHAT] Calling Azure Function with world settings (SECURE - data in encrypted POST body)"
+        : "[CHAT] Calling Azure Function (SECURE - data in encrypted POST body)";
+      console.log(logMsg);
 
-      // SECURE: Send email, message, and conversation history in encrypted POST body
+      // Prepare request body with world settings if provided
+      const requestBody: any = {
+        email: name || 'user@example.com',
+        text: message,
+        history: history || []
+      };
+
+      // Add world-specific settings as per-request overrides if provided
+      if (worldSettings) {
+        requestBody.model = worldSettings.model;
+        requestBody.temperature = worldSettings.temperature;
+        requestBody.maxTokens = worldSettings.maxTokens;
+        requestBody.responseStyle = worldSettings.responseStyle;
+        requestBody.conversationStyle = worldSettings.conversationStyle;
+        requestBody.customPersonality = worldSettings.customPersonality;
+      }
+
+      // SECURE: Send email, message, conversation history, and settings in encrypted POST body
       const response = await fetch(fullUrl, {
         method: "POST",
         headers: {
           'Content-Type': 'application/json',
           ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
         },
-        body: JSON.stringify({
-          email: name || 'user@example.com',
-          text: message,
-          history: history || []
-        })
+        body: JSON.stringify(requestBody)
       });
       
       console.log("[CHAT] Azure Function responded with status:", response.status);

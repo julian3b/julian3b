@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application built with React, Express, and T
 
 ## Recent Changes
 
+- **October 22, 2025**: Implemented "Worlds" feature - users can create separate chat contexts with their own AI settings and personalities
 - **October 22, 2025**: Expanded AI customization options - added 6 response styles and 9 conversation styles for enhanced personalization
 - **October 21, 2025**: Added conversation history context to chat messages - AI now receives last 10 messages for conversation context
 - **October 21, 2025**: Implemented comprehensive settings panel with AI customization options (model, temperature, response style, etc.)
@@ -36,12 +37,13 @@ Preferred communication style: Simple, everyday language.
 - Consistent spacing system based on Tailwind units
 
 **Key Components:**
-- `ChatInterface`: Main chat container managing message state, auto-scrolling, and history loading
+- `ChatInterface`: Main chat container managing message state, auto-scrolling, history loading, and world selection
 - `ChatMessage`: Individual message rendering with role-based styling (user vs AI)
 - `ChatInput`: Textarea-based input with send functionality and auto-resize
 - `TabNavigation`: Tab-based navigation system for multiple views
 - `UserPanel`: Tabbed authentication panel with Profile and Settings sections
 - `UserSettings`: Comprehensive AI customization panel with model selection, temperature control, and personality settings
+- `Worlds`: World management interface for creating and configuring separate chat contexts
 - `LandingPage`: Pre-authentication landing page with feature highlights
 - `ThemeProvider`: Context-based theme management with localStorage persistence
 
@@ -68,18 +70,37 @@ Preferred communication style: Simple, everyday language.
 **API Endpoints:**
 - `/api/auth/login` - Proxies to Azure Function for user authentication
 - `/api/auth/signup` - Proxies to Azure Function for user registration
-- `/api/chat` - Proxies chat messages to Azure Function with user email and text
+- `/api/chat` - Proxies chat messages to Azure Function with user email, text, history, and optional world settings
 - `/api/chat/history` - Retrieves conversation history for authenticated users
 - `/api/settings/get` - Fetches user's AI preferences from Azure Function
 - `/api/settings/save` - Saves user's AI preferences to Azure Function
+- `/api/worlds` (GET) - Retrieves all worlds for a specific user
+- `/api/worlds` (POST) - Creates a new world with AI settings
+- `/api/worlds/:id` (PUT) - Updates an existing world
+- `/api/worlds/:id` (DELETE) - Deletes a world
 
 **Authentication Proxy Pattern:**
 The application delegates authentication to Azure Functions rather than implementing auth directly. The Express server acts as a proxy, forwarding credentials to configured Azure Function endpoints and returning responses to the client. This allows for centralized authentication logic in Azure while keeping the web server lightweight.
 
 **Storage Layer:**
-- `IStorage` interface defining CRUD operations for users
-- `MemStorage` implementation using in-memory Map structure
+- `IStorage` interface defining CRUD operations for users and worlds
+- `MemStorage` implementation using in-memory Map structure for both users and worlds
 - Designed for easy swapping to database-backed storage (PostgreSQL expected via Drizzle ORM)
+
+**Worlds Feature:**
+Worlds are separate chat contexts that allow users to create different AI personalities with unique settings. Each world maintains its own:
+- Name and description
+- AI model selection (GPT-3.5 Turbo, GPT-4, GPT-4 Turbo)
+- Temperature, max tokens, response style, conversation style
+- Custom personality instructions
+- Independent conversation history (planned feature)
+
+When a user selects a world in the chat interface, all messages in that conversation use the world's specific AI settings instead of the global user settings. This enables use cases like:
+- A "Coding Assistant" world with technical conversation style and step-by-step response format
+- A "Creative Writer" world with higher temperature and enthusiastic conversation style
+- A "Math Tutor" world with detailed responses and academic tone
+
+World settings are sent as per-request overrides to the Azure Function, allowing the same Azure Function code to handle both global settings and world-specific settings.
 
 ### Database Schema
 
@@ -94,6 +115,13 @@ The application delegates authentication to Azure Functions rather than implemen
   - `responseStyle`: Response format (concise, balanced, detailed, comprehensive, bullet-points, step-by-step)
   - `conversationStyle`: Tone and personality (professional, casual, friendly, technical, enthusiastic, witty, empathetic, academic, socratic)
   - `customPersonality`: Custom system prompt (0-500 characters)
+- `worldSchema` - Zod schema for separate chat contexts with unique AI personalities:
+  - `id`: Unique world identifier
+  - `userId`: Owner of the world
+  - `name`: Display name (1-100 characters)
+  - `description`: Optional description (0-500 characters)
+  - All AI settings fields from userSettingsSchema
+  - `createdAt`: Timestamp of creation
 - Schema validation using Zod via drizzle-zod
 - Migration support configured in `drizzle.config.ts`
 
