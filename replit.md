@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application built with React, Express, and T
 
 ## Recent Changes
 
+- **October 22, 2025**: Integrated worlds with Azure Table Storage - all world CRUD operations now use Azure Function actions (createworld, getworlds, updateworld, deleteworld)
 - **October 22, 2025**: Added world-building fields to World Settings - characters, events, scenario, places, and additional settings for rich context
 - **October 22, 2025**: Redesigned interface - "World Settings" tab for configuration, dynamic tabs for each world's dedicated chat
 - **October 22, 2025**: Implemented "Worlds" feature - users can create separate chat contexts with their own AI settings and personalities
@@ -72,14 +73,14 @@ Preferred communication style: Simple, everyday language.
 **API Endpoints:**
 - `/api/auth/login` - Proxies to Azure Function for user authentication
 - `/api/auth/signup` - Proxies to Azure Function for user registration
-- `/api/chat` - Proxies chat messages to Azure Function with user email, text, history, and optional world settings
+- `/api/chat` - Proxies chat messages to Azure Function with user email, text, history, and optional world settings (including world-building fields)
 - `/api/chat/history` - Retrieves conversation history for authenticated users
 - `/api/settings/get` - Fetches user's AI preferences from Azure Function
 - `/api/settings/save` - Saves user's AI preferences to Azure Function
-- `/api/worlds` (GET) - Retrieves all worlds for a specific user
-- `/api/worlds` (POST) - Creates a new world with AI settings
-- `/api/worlds/:id` (PUT) - Updates an existing world
-- `/api/worlds/:id` (DELETE) - Deletes a world
+- `/api/worlds` (GET) - Proxies to Azure Function with "getworlds" action to retrieve all worlds from Azure Table Storage
+- `/api/worlds` (POST) - Proxies to Azure Function with "createworld" action to create a new world in Azure Table Storage
+- `/api/worlds/:id` (PUT) - Proxies to Azure Function with "updateworld" action to update an existing world in Azure Table Storage
+- `/api/worlds/:id` (DELETE) - Proxies to Azure Function with "deleteworld" action to delete a world from Azure Table Storage
 
 **Authentication Proxy Pattern:**
 The application delegates authentication to Azure Functions rather than implementing auth directly. The Express server acts as a proxy, forwarding credentials to configured Azure Function endpoints and returning responses to the client. This allows for centralized authentication logic in Azure while keeping the web server lightweight.
@@ -149,10 +150,14 @@ World settings are sent as per-request overrides to the Azure Function, allowing
 **Supported Azure Function Actions:**
 - `login` - User authentication
 - `create account` - User registration
-- Chat (no action field) - Send message with conversation history and receive AI response
+- Chat (no action field) - Send message with conversation history and receive AI response (includes world-building fields if in a world chat)
 - `history` - Retrieve user's conversation history
 - `getSettings` - Fetch user's AI preferences
 - `saveSettings` - Persist user's AI preferences
+- `createworld` - Create a new world and store in Azure Table Storage
+- `getworlds` - Retrieve all worlds for a user from Azure Table Storage
+- `updateworld` - Update an existing world in Azure Table Storage
+- `deleteworld` - Delete a world from Azure Table Storage
 
 **Security Implementation:**
 - All credentials, messages, and settings transmitted in POST request body (never in URL)
