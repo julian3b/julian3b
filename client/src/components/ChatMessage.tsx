@@ -12,13 +12,19 @@ type ChatMessageProps = {
 };
 
 function formatTimestamp(date: Date): string {
-  // Always show date and time in mm/dd/yyyy hh:mm format
+  // Format: MM/DD/YYYY hh:MM tt (12-hour with AM/PM)
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   const year = date.getFullYear();
-  const hours = String(date.getHours()).padStart(2, '0');
+  
+  let hours = date.getHours();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // Convert 0 to 12
+  const hoursStr = String(hours).padStart(2, '0');
   const minutes = String(date.getMinutes()).padStart(2, '0');
-  return `${month}/${day}/${year} ${hours}:${minutes}`;
+  
+  return `${month}/${day}/${year} ${hoursStr}:${minutes} ${ampm}`;
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
