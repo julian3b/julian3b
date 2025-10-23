@@ -124,8 +124,11 @@ export default function Home() {
       const data = await response.json();
       
       if (data.ok && data.items) {
+        // Azure returns items in descending order (newest first), so reverse to get oldest first
+        const reversedItems = [...data.items].reverse();
+        
         // Convert history items to Message format
-        const historyMessages: Message[] = data.items.flatMap((item: any, index: number) => [
+        const historyMessages: Message[] = reversedItems.flatMap((item: any, index: number) => [
           {
             id: `history-user-${index}`,
             role: "user" as const,
