@@ -11,12 +11,36 @@ type ChatMessageProps = {
   message: Message;
 };
 
+function isToday(date: Date): boolean {
+  const today = new Date();
+  return (
+    date.getDate() === today.getDate() &&
+    date.getMonth() === today.getMonth() &&
+    date.getFullYear() === today.getFullYear()
+  );
+}
+
+function formatTimestamp(date: Date): string {
+  if (isToday(date)) {
+    // Just show time for today's messages
+    return date.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  } else {
+    // Show date and time for older messages in mm/dd/yyyy hh:mm format
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${month}/${day}/${year} ${hours}:${minutes}`;
+  }
+}
+
 export function ChatMessage({ message }: ChatMessageProps) {
   const isUser = message.role === "user";
-  const time = message.timestamp.toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  const time = formatTimestamp(message.timestamp);
 
   return (
     <div
