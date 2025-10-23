@@ -56,12 +56,15 @@ export function ChatInterface({
   const worlds = worldsData?.worlds || [];
   // Use preset world if provided, otherwise use selected world from dropdown
   const selectedWorld = world || worlds.find((w) => w.id === selectedWorldId);
+  
+  // Determine the active world ID (either from preset world prop or selected dropdown)
+  const activeWorldId = world?.id || selectedWorldId;
 
-  // Load world-specific chat history when in a dedicated world chat
+  // Load world-specific chat history when a world is active (either dedicated tab or dropdown selection)
   const { data: worldHistoryData, isLoading: isLoadingWorldHistory } = useQuery({
-    queryKey: ["/api/chat/world-history", world?.id, userEmail],
+    queryKey: ["/api/chat/world-history", activeWorldId, userEmail],
     queryFn: async () => {
-      if (!userEmail || !world?.id) {
+      if (!userEmail || !activeWorldId) {
         throw new Error("User email and world ID required");
       }
       const response = await fetch("/api/chat/world-history", {
@@ -71,18 +74,18 @@ export function ChatInterface({
         },
         body: JSON.stringify({
           email: userEmail,
-          worldId: world.id,
+          worldId: activeWorldId,
         }),
       });
       if (!response.ok) throw new Error("Failed to fetch world history");
       return response.json();
     },
-    enabled: !!world && !!userEmail && !!world.id, // Only fetch if this is a dedicated world chat
+    enabled: !!activeWorldId && !!userEmail, // Fetch if any world is active (dedicated tab or dropdown)
   });
 
-  // Update messages when world history is loaded
+  // Update messages when world history is loaded (for both dedicated world tabs and dropdown selection)
   useEffect(() => {
-    if (world && worldHistoryData?.items) {
+    if (activeWorldId && worldHistoryData?.items) {
       // Azure returns items in ascending order (oldest first), which is what we want
       // Each item has both input (user) and aiReply (assistant), so we need to create 2 messages per item
       const historyMessages: Message[] = [];
@@ -107,16 +110,16 @@ export function ChatInterface({
         }
       });
       setMessages(historyMessages);
-      console.log(`Loaded ${historyMessages.length} world history items for world ${world.id}`);
+      console.log(`Loaded ${historyMessages.length} world history items for world ${activeWorldId}`);
     }
-  }, [world, worldHistoryData]);
+  }, [activeWorldId, worldHistoryData]);
 
-  // Update messages when initialMessages changes (for default/global chat)
+  // Update messages when switching back to default/global chat (no world selected)
   useEffect(() => {
-    if (!world && initialMessages.length > 0) {
+    if (!world && !selectedWorldId) {
       setMessages(initialMessages);
     }
-  }, [world, initialMessages]);
+  }, [world, selectedWorldId, initialMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
