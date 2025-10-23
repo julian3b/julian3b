@@ -225,6 +225,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // World-specific chat history endpoint
+  app.post("/api/chat/world-history", async (req, res) => {
+    try {
+      const { email, worldId } = req.body;
+
+      if (!email || !worldId) {
+        return res.status(400).json({ error: "Email and worldId are required" });
+      }
+
+      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
+        "https://functionapp120251021090023.azurewebsites.net/api/echo";
+      
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const params = new URLSearchParams({
+        ...(azureFunctionKey && { code: azureFunctionKey })
+      });
+
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log("[WORLD-HISTORY] Fetching world chat history (email and worldId not logged)");
+
+      const response = await fetch(fullUrl, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
+        },
+        body: JSON.stringify({
+          action: "getworldchats",
+          email: email,
+          worldid: worldId
+        })
+      });
+
+      console.log("[WORLD-HISTORY] Azure Function responded with status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[WORLD-HISTORY] Azure Function error response");
+        throw new Error(`Azure Function error: ${response.status}`);
+      }
+
+      const text = await response.text();
+      if (!text) {
+        console.log('[WORLD-HISTORY] Empty response from Azure Function');
+        return res.json({ ok: true, items: [] });
+      }
+
+      const data = JSON.parse(text);
+      console.log(`[WORLD-HISTORY] Retrieved ${data.count || 0} world history items for world ${worldId}`);
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching world history:", error);
+      res.status(500).json({ error: "Failed to fetch world chat history" });
+    }
+  });
+
   // Get user settings endpoint
   app.post("/api/settings/get", async (req, res) => {
     try {
