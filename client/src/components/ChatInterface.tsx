@@ -83,9 +83,12 @@ export function ChatInterface({
   // Update messages when world history is loaded
   useEffect(() => {
     if (world && worldHistoryData?.items) {
+      // Azure returns items in descending order (newest first), so reverse to get oldest first
+      const reversedItems = [...worldHistoryData.items].reverse();
+      
       // Each item has both input (user) and aiReply (assistant), so we need to create 2 messages per item
       const historyMessages: Message[] = [];
-      worldHistoryData.items.forEach((item: any, index: number) => {
+      reversedItems.forEach((item: any, index: number) => {
         // Add user message
         if (item.input) {
           historyMessages.push({
