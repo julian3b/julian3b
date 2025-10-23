@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application built with React, Express, and T
 
 ## Recent Changes
 
+- **October 23, 2025**: Implemented world-specific chat history loading - each world now automatically loads its previous conversations from Azure Table Storage using action=getworldchats
 - **October 22, 2025**: Implemented world-specific chat messaging - messages sent from a world now include action=addworldchat with worldId and all world settings (model, temperature, maxTokens, responseStyle, conversationStyle, customPersonality, characters, events, scenario, places, additionalSettings)
 - **October 22, 2025**: Increased character limits to 5,000 for all world-building fields (customPersonality, characters, events, scenario, places, additionalSettings)
 - **October 22, 2025**: Integrated worlds with Azure Table Storage - all world CRUD operations now use Azure Function actions (createworld, getworlds, updateworld, deleteworld)
@@ -76,7 +77,8 @@ Preferred communication style: Simple, everyday language.
 - `/api/auth/login` - Proxies to Azure Function for user authentication
 - `/api/auth/signup` - Proxies to Azure Function for user registration
 - `/api/chat` - Proxies chat messages to Azure Function with user email, text, and history. When sending from a world context, includes action=addworldchat, worldId, and all world settings (model, temperature, maxTokens, responseStyle, conversationStyle, customPersonality, characters, events, scenario, places, additionalSettings). When sending from Default (Global Settings), sends message without action field.
-- `/api/chat/history` - Retrieves conversation history for authenticated users
+- `/api/chat/history` - Retrieves global conversation history for authenticated users
+- `/api/chat/world-history` - Retrieves world-specific conversation history using action=getworldchats with email and worldId parameters
 - `/api/settings/get` - Fetches user's AI preferences from Azure Function
 - `/api/settings/save` - Saves user's AI preferences to Azure Function
 - `/api/worlds` (GET) - Proxies to Azure Function with "getworlds" action to retrieve all worlds from Azure Table Storage
@@ -99,7 +101,7 @@ Worlds are separate chat contexts that allow users to create different AI person
 - Temperature, max tokens, response style, conversation style
 - Custom personality instructions
 - Characters, events, scenario, places, and additional settings (context fields for rich world-building)
-- Independent conversation history (planned feature)
+- Independent conversation history stored in Azure Table Storage and loaded automatically when opening a world tab
 
 When a user selects a world in the chat interface, all messages in that conversation use the world's specific AI settings instead of the global user settings. This enables use cases like:
 - A "Coding Assistant" world with technical conversation style and step-by-step response format
@@ -154,7 +156,8 @@ World settings are sent as per-request overrides to the Azure Function, allowing
 - `create account` - User registration
 - Chat (no action field) - Send message from Default (Global Settings) with conversation history using user's saved AI preferences
 - `addworldchat` - Send message from a specific world context with worldId and all world settings (model, temperature, maxTokens, responseStyle, conversationStyle, customPersonality, characters, events, scenario, places, additionalSettings)
-- `history` - Retrieve user's conversation history
+- `history` - Retrieve user's global conversation history
+- `getworldchats` - Retrieve world-specific conversation history using email and worldid parameters
 - `getSettings` - Fetch user's AI preferences
 - `saveSettings` - Persist user's AI preferences
 - `createworld` - Create a new world and store in Azure Table Storage
