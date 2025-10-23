@@ -218,6 +218,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = JSON.parse(text);
       console.log(`[HISTORY] Retrieved ${data.count || 0} history items`);
+      
+      // Debug: Log first and last items to verify order
+      if (data.items && data.items.length > 0) {
+        console.log('[HISTORY] First item CreatedUtc:', data.items[0].CreatedUtc);
+        console.log('[HISTORY] Last item CreatedUtc:', data.items[data.items.length - 1].CreatedUtc);
+      }
+      
       res.json(data);
     } catch (error) {
       console.error("Error fetching history:", error);

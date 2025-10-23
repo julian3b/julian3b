@@ -124,11 +124,9 @@ export default function Home() {
       const data = await response.json();
       
       if (data.ok && data.items) {
-        // Azure returns items in descending order (newest first), so reverse to get oldest first
-        const reversedItems = [...data.items].reverse();
-        
+        // Azure returns items in ascending order (oldest first), which is what we want
         // Convert history items to Message format
-        const historyMessages: Message[] = reversedItems.flatMap((item: any, index: number) => [
+        const historyMessages: Message[] = data.items.flatMap((item: any, index: number) => [
           {
             id: `history-user-${index}`,
             role: "user" as const,
@@ -142,6 +140,12 @@ export default function Home() {
             timestamp: new Date(item.CreatedUtc || new Date())
           }
         ]);
+        
+        // Debug: Log the first and last messages to verify order
+        if (historyMessages.length > 0) {
+          console.log('First message timestamp:', historyMessages[0].timestamp);
+          console.log('Last message timestamp:', historyMessages[historyMessages.length - 1].timestamp);
+        }
         
         setChatHistory(historyMessages);
         console.log(`Loaded ${data.count} history items`);
