@@ -57,12 +57,49 @@ export function ChatInterface({
   // Use preset world if provided, otherwise use selected world from dropdown
   const selectedWorld = world || worlds.find((w) => w.id === selectedWorldId);
 
-  // Update messages when initialMessages changes
+  // Load world-specific chat history when in a dedicated world chat
+  const { data: worldHistoryData, isLoading: isLoadingWorldHistory } = useQuery({
+    queryKey: ["/api/chat/world-history", world?.id, userEmail],
+    queryFn: async () => {
+      if (!userEmail || !world?.id) {
+        throw new Error("User email and world ID required");
+      }
+      const response = await fetch("/api/chat/world-history", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          worldId: world.id,
+        }),
+      });
+      if (!response.ok) throw new Error("Failed to fetch world history");
+      return response.json();
+    },
+    enabled: !!world && !!userEmail && !!world.id, // Only fetch if this is a dedicated world chat
+  });
+
+  // Update messages when world history is loaded
   useEffect(() => {
-    if (initialMessages.length > 0) {
+    if (world && worldHistoryData?.items) {
+      const historyMessages: Message[] = worldHistoryData.items.map((item: any, index: number) => ({
+        id: `history-${index}`,
+        role: item.role || (item.sender === "user" ? "user" : "assistant"),
+        content: item.content || item.message || "",
+        timestamp: new Date(item.timestamp || item.time || Date.now()),
+      }));
+      setMessages(historyMessages);
+      console.log(`Loaded ${historyMessages.length} world history items for world ${world.id}`);
+    }
+  }, [world, worldHistoryData]);
+
+  // Update messages when initialMessages changes (for default/global chat)
+  useEffect(() => {
+    if (!world && initialMessages.length > 0) {
       setMessages(initialMessages);
     }
-  }, [initialMessages]);
+  }, [world, initialMessages]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -161,11 +198,20 @@ export function ChatInterface({
       
       <div className="flex-1 overflow-y-auto">
         <div className="max-w-4xl mx-auto p-6 space-y-6">
-          {messages.length === 0 && (
+          {isLoadingWorldHistory && (
+            <div className="flex items-center justify-center h-[400px]">
+              <div className="text-center">
+                <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
+                <p className="text-muted-foreground">Loading world chat history...</p>
+              </div>
+            </div>
+          )}
+          
+          {!isLoadingWorldHistory && messages.length === 0 && (
             <div className="flex items-center justify-center h-[400px]">
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  Welcome to AI Chat
+                  {world ? `Welcome to ${world.name}` : "Welcome to AI Chat"}
                 </h3>
                 <p className="text-muted-foreground">
                   Start a conversation by typing a message below
