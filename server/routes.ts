@@ -275,6 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = JSON.parse(text);
       console.log(`[WORLD-HISTORY] Retrieved ${data.count || 0} world history items for world ${worldId}`);
+      console.log("[WORLD-HISTORY] Raw data from Azure Function:", JSON.stringify(data, null, 2));
       res.json(data);
     } catch (error) {
       console.error("Error fetching world history:", error);

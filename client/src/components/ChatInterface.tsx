@@ -83,12 +83,28 @@ export function ChatInterface({
   // Update messages when world history is loaded
   useEffect(() => {
     if (world && worldHistoryData?.items) {
-      const historyMessages: Message[] = worldHistoryData.items.map((item: any, index: number) => ({
-        id: `history-${index}`,
-        role: item.role || (item.sender === "user" ? "user" : "assistant"),
-        content: item.content || item.message || "",
-        timestamp: new Date(item.timestamp || item.time || Date.now()),
-      }));
+      // Each item has both input (user) and aiReply (assistant), so we need to create 2 messages per item
+      const historyMessages: Message[] = [];
+      worldHistoryData.items.forEach((item: any, index: number) => {
+        // Add user message
+        if (item.input) {
+          historyMessages.push({
+            id: `history-user-${index}`,
+            role: "user",
+            content: item.input,
+            timestamp: new Date(item.createdUtc || Date.now()),
+          });
+        }
+        // Add AI reply
+        if (item.aiReply) {
+          historyMessages.push({
+            id: `history-ai-${index}`,
+            role: "assistant",
+            content: item.aiReply,
+            timestamp: new Date(item.createdUtc || Date.now()),
+          });
+        }
+      });
       setMessages(historyMessages);
       console.log(`Loaded ${historyMessages.length} world history items for world ${world.id}`);
     }
