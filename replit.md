@@ -6,8 +6,9 @@ This is a full-stack AI chatbot web application built with React, Express, and T
 
 ## Recent Changes
 
+- **October 24, 2025**: Fixed world chat history ordering - Azure returns world history in descending order (newest first), so we reverse the array to display messages chronologically (oldest to newest)
+- **October 24, 2025**: Implemented always-fresh message loading - world and global chat history now refetch from Azure every time you switch tabs/worlds or send messages, ensuring you always see the latest conversations
 - **October 23, 2025**: Enhanced message timestamps - all messages now display date in mm/dd/yyyy hh:mm format
-- **October 23, 2025**: Fixed message ordering - both Chat and World tabs now display messages in chronological order (oldest to newest). Azure sends items in ascending order, so no reversal is needed.
 - **October 23, 2025**: Implemented world-specific chat history loading - each world now automatically loads its previous conversations from Azure Table Storage using action=getworldchats
 - **October 22, 2025**: Implemented world-specific chat messaging - messages sent from a world now include action=addworldchat with worldId and all world settings (model, temperature, maxTokens, responseStyle, conversationStyle, customPersonality, characters, events, scenario, places, additionalSettings)
 - **October 22, 2025**: Increased character limits to 5,000 for all world-building fields (customPersonality, characters, events, scenario, places, additionalSettings)
