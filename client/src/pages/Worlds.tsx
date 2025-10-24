@@ -479,6 +479,10 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                     <SelectItem value="comprehensive">Comprehensive - In-depth with examples</SelectItem>
                     <SelectItem value="bullet-points">Bullet Points - Organized lists</SelectItem>
                     <SelectItem value="step-by-step">Step-by-Step - Sequential instructions</SelectItem>
+                    <SelectItem value="narrative">Narrative - Storytelling style</SelectItem>
+                    <SelectItem value="dramatic">Dramatic - Theatrical and intense</SelectItem>
+                    <SelectItem value="immersive">Immersive - Deep, detailed roleplay</SelectItem>
+                    <SelectItem value="action-packed">Action-Packed - Fast-paced and exciting</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -502,6 +506,14 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                     <SelectItem value="empathetic">Empathetic - Supportive and understanding</SelectItem>
                     <SelectItem value="academic">Academic - Scholarly and formal</SelectItem>
                     <SelectItem value="socratic">Socratic - Questioning and thought-provoking</SelectItem>
+                    <SelectItem value="playful">Playful - Fun and lighthearted</SelectItem>
+                    <SelectItem value="adventurous">Adventurous - Bold and exciting</SelectItem>
+                    <SelectItem value="sarcastic">Sarcastic - Witty with edge</SelectItem>
+                    <SelectItem value="flirtatious">Flirtatious - Charming and romantic</SelectItem>
+                    <SelectItem value="mysterious">Mysterious - Enigmatic and intriguing</SelectItem>
+                    <SelectItem value="dramatic">Dramatic - Theatrical and expressive</SelectItem>
+                    <SelectItem value="comedic">Comedic - Focused on humor</SelectItem>
+                    <SelectItem value="edgy">Edgy - Bold and mature themes</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

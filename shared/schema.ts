@@ -30,8 +30,8 @@ export const userSettingsSchema = z.object({
   ]).default("gpt-4o-mini"),
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().min(100).max(4000).default(2000),
-  responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step"]).default("balanced"),
-  conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic"]).default("friendly"),
+  responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step", "narrative", "dramatic", "immersive", "action-packed"]).default("balanced"),
+  conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic", "playful", "adventurous", "sarcastic", "flirtatious", "mysterious", "dramatic", "comedic", "edgy"]).default("friendly"),
   customPersonality: z.string().max(5000).default(""),
 });
 
@@ -54,8 +54,8 @@ export const worldSchema = z.object({
   ]).default("gpt-4o-mini"),
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().min(100).max(4000).default(2000),
-  responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step"]).default("balanced"),
-  conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic"]).default("friendly"),
+  responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step", "narrative", "dramatic", "immersive", "action-packed"]).default("balanced"),
+  conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic", "playful", "adventurous", "sarcastic", "flirtatious", "mysterious", "dramatic", "comedic", "edgy"]).default("friendly"),
   customPersonality: z.string().max(5000).default(""),
   characters: z.string().max(5000).default(""),
   events: z.string().max(5000).default(""),

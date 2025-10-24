@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application built with React, Express, and T
 
 ## Recent Changes
 
+- **October 24, 2025**: Expanded Response Style and Conversation Style options for roleplay scenarios - Added 4 new Response Styles (narrative, dramatic, immersive, action-packed) and 8 new Conversation Styles (playful, adventurous, sarcastic, flirtatious, mysterious, dramatic, comedic, edgy) to better support diverse roleplay and character interactions
 - **October 24, 2025**: Updated AI model selection - Added 7 new models (GPT-5 Nano, GPT-4o Mini, GPT-5 Mini, GPT-5, GPT-4o, GPT-4.5, o1-Pro) ordered from cheapest to most expensive with pricing information (input/output tokens per 1M) displayed in both Settings and World Settings
 - **October 24, 2025**: Fixed world chat history ordering - Azure returns world history in descending order (newest first), so we reverse the array to display messages chronologically (oldest to newest)
 - **October 24, 2025**: Implemented always-fresh message loading - world and global chat history now refetch from Azure every time you switch tabs/worlds or send messages, ensuring you always see the latest conversations
@@ -121,11 +122,11 @@ World settings are sent as per-request overrides to the Azure Function, allowing
 **Schema Definition:**
 - `users` table with UUID primary key, username, and password fields
 - `userSettingsSchema` - Zod schema defining AI customization preferences:
-  - `model`: AI model selection (gpt-3.5-turbo, gpt-4, gpt-4-turbo)
+  - `model`: AI model selection (gpt-5-nano, gpt-4o-mini, gpt-5-mini, gpt-5, gpt-4o, gpt-4.5, o1-pro)
   - `temperature`: Creativity level (0-2, default 0.7)
   - `maxTokens`: Response length limit (100-4000, default 2000)
-  - `responseStyle`: Response format (concise, balanced, detailed, comprehensive, bullet-points, step-by-step)
-  - `conversationStyle`: Tone and personality (professional, casual, friendly, technical, enthusiastic, witty, empathetic, academic, socratic)
+  - `responseStyle`: Response format (concise, balanced, detailed, comprehensive, bullet-points, step-by-step, narrative, dramatic, immersive, action-packed)
+  - `conversationStyle`: Tone and personality (professional, casual, friendly, technical, enthusiastic, witty, empathetic, academic, socratic, playful, adventurous, sarcastic, flirtatious, mysterious, dramatic, comedic, edgy)
   - `customPersonality`: Custom system prompt (0-5000 characters)
 - `worldSchema` - Zod schema for separate chat contexts with unique AI personalities:
   - `id`: Unique world identifier
