@@ -50,6 +50,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
             }`}
         >
           <div
+            style={window.innerWidth < 500 ? { fontSize: "12px" } : {}}
             className="text-base whitespace-pre-wrap break-words"
             dangerouslySetInnerHTML={{ __html: message.content }}
           />
