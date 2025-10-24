@@ -36,9 +36,10 @@ import { queryClient, apiRequest } from "@/lib/queryClient";
 type WorldsProps = {
   userId: string;
   userEmail: string;
+  onWorldClick?: (worldId: string) => void;
 };
 
-export default function Worlds({ userId, userEmail }: WorldsProps) {
+export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps) {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingWorld, setEditingWorld] = useState<World | null>(null);
@@ -311,7 +312,11 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {worlds.map((world) => (
               <Card key={world.id} data-testid={`card-world-${world.id}`}>
-                <CardHeader>
+                <CardHeader 
+                  className="cursor-pointer hover-elevate active-elevate-2"
+                  onClick={() => onWorldClick?.(world.id)}
+                  data-testid={`header-world-${world.id}`}
+                >
                   <CardTitle className="flex items-center justify-between">
                     <span>{world.name}</span>
                   </CardTitle>

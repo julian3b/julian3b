@@ -248,7 +248,11 @@ export default function Home() {
                 const userDataStr = localStorage.getItem('user_data');
                 const userData = userDataStr ? JSON.parse(userDataStr) : null;
                 const userEmail = userData?.email || '';
-                return <Worlds userId={userId} userEmail={userEmail} />;
+                return <Worlds 
+                  userId={userId} 
+                  userEmail={userEmail}
+                  onWorldClick={(worldId) => setActiveTab(`world-${worldId}`)}
+                />;
               })()
             )}
             {activeTab.startsWith("world-") && activeTab !== "world-settings" && (() => {

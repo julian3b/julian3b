@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application built with React, Express, and T
 
 ## Recent Changes
 
+- **October 24, 2025**: Made world headers clickable in World Settings - clicking a world card header navigates directly to that world's chat tab for faster access
 - **October 24, 2025**: Expanded Response Style and Conversation Style options for roleplay scenarios - Added 4 new Response Styles (narrative, dramatic, immersive, action-packed) and 8 new Conversation Styles (playful, adventurous, sarcastic, flirtatious, mysterious, dramatic, comedic, edgy) to better support diverse roleplay and character interactions
 - **October 24, 2025**: Updated AI model selection - Added 7 new models (GPT-5 Nano, GPT-4o Mini, GPT-5 Mini, GPT-5, GPT-4o, GPT-4.5, o1-Pro) ordered from cheapest to most expensive with pricing information (input/output tokens per 1M) displayed in both Settings and World Settings
 - **October 24, 2025**: Fixed world chat history ordering - Azure returns world history in descending order (newest first), so we reverse the array to display messages chronologically (oldest to newest)
