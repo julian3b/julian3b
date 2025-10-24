@@ -96,6 +96,13 @@ export default function Home() {
       fetchChatHistory();
     }
   }, []);
+  
+  // Refetch global chat history when switching to the Chat tab
+  useEffect(() => {
+    if (activeTab === "chat" && isAuthenticated) {
+      fetchChatHistory();
+    }
+  }, [activeTab]);
 
   const fetchChatHistory = async () => {
     try {
@@ -189,6 +196,13 @@ export default function Home() {
       }
 
       const data = await response.json();
+      
+      // Refetch chat history after sending message to get latest from Azure
+      // Only refetch global history if not sending to a world
+      if (!worldSettings && activeTab === "chat") {
+        setTimeout(() => fetchChatHistory(), 500); // Small delay to allow Azure to process
+      }
+      
       return data;
     } catch (error) {
       console.error('Error sending message:', error);

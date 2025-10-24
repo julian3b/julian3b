@@ -61,7 +61,7 @@ export function ChatInterface({
   const activeWorldId = world?.id || selectedWorldId;
 
   // Load world-specific chat history when a world is active (either dedicated tab or dropdown selection)
-  const { data: worldHistoryData, isLoading: isLoadingWorldHistory } = useQuery({
+  const { data: worldHistoryData, isLoading: isLoadingWorldHistory, refetch: refetchWorldHistory } = useQuery({
     queryKey: ["/api/chat/world-history", activeWorldId, userEmail],
     queryFn: async () => {
       if (!userEmail || !activeWorldId) {
@@ -81,7 +81,16 @@ export function ChatInterface({
       return response.json();
     },
     enabled: !!activeWorldId && !!userEmail, // Fetch if any world is active (dedicated tab or dropdown)
+    refetchOnMount: 'always', // Always refetch when component mounts
+    staleTime: 0, // Data is immediately stale, ensuring fresh fetches
   });
+
+  // Force refetch when activeWorldId changes (switching between worlds)
+  useEffect(() => {
+    if (activeWorldId && userEmail) {
+      refetchWorldHistory();
+    }
+  }, [activeWorldId]);
 
   // Update messages when world history is loaded (for both dedicated world tabs and dropdown selection)
   useEffect(() => {
@@ -169,6 +178,11 @@ export function ChatInterface({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, aiMessage]);
+      
+      // Refetch world history after sending message to get latest from Azure
+      if (activeWorldId && userEmail) {
+        setTimeout(() => refetchWorldHistory(), 500); // Small delay to allow Azure to process
+      }
     } catch (error) {
       console.error("Error sending message:", error);
       const errorMessage: Message = {
