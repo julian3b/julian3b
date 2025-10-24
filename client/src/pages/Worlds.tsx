@@ -46,7 +46,7 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
     userId,
     name: "",
     description: "",
-    model: "gpt-3.5-turbo",
+    model: "gpt-4o-mini",
     temperature: 0.7,
     maxTokens: 2000,
     responseStyle: "balanced",
@@ -141,7 +141,7 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
       userId,
       name: "",
       description: "",
-      model: "gpt-3.5-turbo",
+      model: "gpt-4o-mini",
       temperature: 0.7,
       maxTokens: 2000,
       responseStyle: "balanced",
@@ -417,9 +417,13 @@ export default function Worlds({ userId, userEmail }: WorldsProps) {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="gpt-3.5-turbo">GPT-3.5 Turbo (Faster)</SelectItem>
-                    <SelectItem value="gpt-4">GPT-4 (More Capable)</SelectItem>
-                    <SelectItem value="gpt-4-turbo">GPT-4 Turbo (Best)</SelectItem>
+                    <SelectItem value="gpt-5-nano">GPT-5 Nano - $0.05/$0.40 per 1M tokens</SelectItem>
+                    <SelectItem value="gpt-4o-mini">GPT-4o Mini - $0.15/$0.60 per 1M tokens</SelectItem>
+                    <SelectItem value="gpt-5-mini">GPT-5 Mini - $0.25/$2.00 per 1M tokens</SelectItem>
+                    <SelectItem value="gpt-5">GPT-5 - $1.25/$10.00 per 1M tokens</SelectItem>
+                    <SelectItem value="gpt-4o">GPT-4o - $2.50/$10.00 per 1M tokens</SelectItem>
+                    <SelectItem value="gpt-4.5">GPT-4.5 - $75.00/$150.00 per 1M tokens</SelectItem>
+                    <SelectItem value="o1-pro">o1-Pro - $150.00/$600.00 per 1M tokens</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

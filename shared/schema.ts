@@ -19,7 +19,15 @@ export type User = typeof users.$inferSelect;
 
 export const userSettingsSchema = z.object({
   email: z.string().email(),
-  model: z.enum(["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"]).default("gpt-3.5-turbo"),
+  model: z.enum([
+    "gpt-5-nano",
+    "gpt-4o-mini", 
+    "gpt-5-mini",
+    "gpt-5",
+    "gpt-4o",
+    "gpt-4.5",
+    "o1-pro"
+  ]).default("gpt-4o-mini"),
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().min(100).max(4000).default(2000),
   responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step"]).default("balanced"),
@@ -35,7 +43,15 @@ export const worldSchema = z.object({
   userId: z.string(),
   name: z.string().min(1).max(100),
   description: z.string().max(500).default(""),
-  model: z.enum(["gpt-3.5-turbo", "gpt-4", "gpt-4-turbo"]).default("gpt-3.5-turbo"),
+  model: z.enum([
+    "gpt-5-nano",
+    "gpt-4o-mini", 
+    "gpt-5-mini",
+    "gpt-5",
+    "gpt-4o",
+    "gpt-4.5",
+    "o1-pro"
+  ]).default("gpt-4o-mini"),
   temperature: z.number().min(0).max(2).default(0.7),
   maxTokens: z.number().min(100).max(4000).default(2000),
   responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step"]).default("balanced"),
