@@ -8,7 +8,7 @@ import { UserPanel } from "@/components/UserPanel";
 import { LandingPage } from "@/components/LandingPage";
 import Worlds from "@/pages/Worlds";
 import { Button } from "@/components/ui/button";
-import { User } from "lucide-react";
+import { User, Globe } from "lucide-react";
 import type { World } from "@shared/schema";
 
 function getUserId(): string {
@@ -60,10 +60,9 @@ export default function Home() {
 
   const worlds = worldsData?.worlds || [];
 
-  // Create dynamic tabs: Chat, World Settings, then one tab per world
+  // Create dynamic tabs: Chat, then one tab per world (World Settings moved to icon button)
   const tabs = [
     { id: "chat", label: "Chat" },
-    { id: "world-settings", label: "World Settings" },
     ...worlds.map(world => ({
       id: `world-${world.id}`,
       label: world.name,
@@ -216,6 +215,17 @@ export default function Home() {
         {isAuthenticated && <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />}
         {!isAuthenticated && <div className="px-6 py-3"><h2 className="text-lg font-semibold">AI Chat</h2></div>}
         <div className="flex items-center gap-2 px-4">
+          {isAuthenticated && (
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={() => setActiveTab("world-settings")}
+              data-testid="button-world-settings"
+              className={activeTab === "world-settings" ? "bg-accent" : ""}
+            >
+              <Globe className="w-5 h-5" />
+            </Button>
+          )}
           <Button 
             variant="ghost" 
             size="icon" 
