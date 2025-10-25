@@ -769,7 +769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         body: JSON.stringify({
           action: "getworldsummaries",
           email: email,
-          worldId: worldId
+          worldid: worldId
         })
       });
 
@@ -789,10 +789,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = JSON.parse(text);
       
-      // Azure Function returns 'items' in PascalCase, transform to camelCase for frontend
-      const rawSummaries = data.items || data.summaries || [];
+      console.log("[WORLD SUMMARIES] Full Azure response:", JSON.stringify(data, null, 2));
       
-      console.log("[WORLD SUMMARIES] Raw data from Azure Function:", JSON.stringify(rawSummaries, null, 2));
+      // Azure Function returns 'items' in PascalCase, transform to camelCase for frontend
+      const rawSummaries = data.items || data.summaries || data.Items || data.Summaries || [];
+      
+      console.log("[WORLD SUMMARIES] Extracted summaries array:", JSON.stringify(rawSummaries, null, 2));
       
       // Transform PascalCase to camelCase
       const summaries = rawSummaries.map((summary: any) => ({
