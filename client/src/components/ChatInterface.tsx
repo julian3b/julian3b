@@ -96,11 +96,10 @@ export function ChatInterface({
   // Update messages when world history is loaded (for both dedicated world tabs and dropdown selection)
   useEffect(() => {
     if (activeWorldId && worldHistoryData?.items) {
-      // Azure returns items in DESCENDING order (newest first), so we need to reverse to get oldest first
+      // Azure Function already sorts messages correctly - display them as received
       // Each item has both input (user) and aiReply (assistant), so we need to create 2 messages per item
       const historyMessages: Message[] = [];
-      const reversedItems = [...worldHistoryData.items].reverse(); // Reverse to get oldest first
-      reversedItems.forEach((item: any, index: number) => {
+      worldHistoryData.items.forEach((item: any, index: number) => {
         // Add user message
         if (item.input) {
           historyMessages.push({
