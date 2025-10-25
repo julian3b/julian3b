@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +43,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingWorld, setEditingWorld] = useState<World | null>(null);
+  const [worldSummaries, setWorldSummaries] = useState<Record<string, { lastSummary: string | null }>>({});
   const [formData, setFormData] = useState<Partial<InsertWorld>>({
     userId,
     name: "",
@@ -136,6 +137,76 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
       });
     },
   });
+
+  // Create summary mutation
+  const createSummaryMutation = useMutation({
+    mutationFn: async (worldId: string) => {
+      const response = await fetch(`/api/worlds/${worldId}/summaries`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email: userEmail }),
+      });
+      if (!response.ok) throw new Error("Failed to create summary");
+      return response.json();
+    },
+    onSuccess: (data, worldId) => {
+      // Refetch summaries for this world
+      fetchWorldSummaries(worldId);
+      toast({
+        title: "Success",
+        description: "Summary created successfully!",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to create summary",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Fetch summaries for a specific world
+  const fetchWorldSummaries = async (worldId: string) => {
+    try {
+      const response = await fetch(`/api/worlds/${worldId}/summaries?email=${encodeURIComponent(userEmail)}`);
+      if (!response.ok) {
+        console.error(`Failed to fetch summaries for world ${worldId}`);
+        return;
+      }
+      const data = await response.json();
+      
+      // Extract last summary date from the response
+      // Assuming the response has a 'summaries' array with items that have a 'createdUtc' field
+      let lastSummary = null;
+      if (data.summaries && data.summaries.length > 0) {
+        // Sort by date and get the most recent
+        const sortedSummaries = [...data.summaries].sort((a, b) => 
+          new Date(b.createdUtc || 0).getTime() - new Date(a.createdUtc || 0).getTime()
+        );
+        lastSummary = sortedSummaries[0].createdUtc;
+      }
+      
+      setWorldSummaries(prev => ({
+        ...prev,
+        [worldId]: { lastSummary }
+      }));
+    } catch (error) {
+      console.error(`Error fetching summaries for world ${worldId}:`, error);
+    }
+  };
+
+  // Fetch summaries for all worlds when they're loaded
+  useEffect(() => {
+    const worldsList = worldsData?.worlds || [];
+    if (worldsList.length > 0) {
+      worldsList.forEach(world => {
+        fetchWorldSummaries(world.id);
+      });
+    }
+  }, [worldsData?.worlds?.length]); // Only refetch when the number of worlds changes
 
   const resetForm = () => {
     setFormData({
@@ -343,7 +414,11 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                   </div>
                   <div className="flex justify-between pt-2 border-t">
                     <span className="text-muted-foreground text-xs">Last Summary:</span>
-                    <span className="font-medium text-xs" data-testid={`text-last-summary-${world.id}`}>Never</span>
+                    <span className="font-medium text-xs" data-testid={`text-last-summary-${world.id}`}>
+                      {worldSummaries[world.id]?.lastSummary 
+                        ? new Date(worldSummaries[world.id].lastSummary!).toLocaleDateString()
+                        : "Never"}
+                    </span>
                   </div>
                 </CardContent>
                 <CardFooter className="flex gap-2">
@@ -361,10 +436,15 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                     variant="outline"
                     size="sm"
                     className="flex-1"
-                    onClick={() => {/* TODO: Handle summarize */}}
+                    onClick={() => createSummaryMutation.mutate(world.id)}
+                    disabled={createSummaryMutation.isPending}
                     data-testid={`button-summarize-world-${world.id}`}
                   >
-                    <Sparkles className="w-4 h-4 mr-2" />
+                    {createSummaryMutation.isPending ? (
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    ) : (
+                      <Sparkles className="w-4 h-4 mr-2" />
+                    )}
                     Summarize
                   </Button>
                   <Button
