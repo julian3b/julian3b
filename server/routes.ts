@@ -739,6 +739,120 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get world summaries endpoint
+  app.get("/api/worlds/:worldId/summaries", async (req, res) => {
+    try {
+      const { worldId } = req.params;
+      const { email } = req.query;
+
+      if (!email || typeof email !== 'string') {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
+        "https://functionapp120251021090023.azurewebsites.net/api/echo";
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const params = new URLSearchParams({
+        ...(azureFunctionKey && { code: azureFunctionKey })
+      });
+
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log(`[WORLD SUMMARIES] Fetching summaries for world ${worldId}`);
+
+      const response = await fetch(fullUrl, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
+        },
+        body: JSON.stringify({
+          action: "getworldsummaries",
+          email: email,
+          worldId: worldId
+        })
+      });
+
+      console.log("[WORLD SUMMARIES] Azure Function responded with status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[WORLD SUMMARIES] Azure Function error response");
+        throw new Error(`Azure Function error: ${response.status}`);
+      }
+
+      const text = await response.text();
+      if (!text) {
+        console.log('[WORLD SUMMARIES] Empty response from Azure Function');
+        return res.json({ ok: true, summaries: [] });
+      }
+
+      const data = JSON.parse(text);
+      console.log("[WORLD SUMMARIES] Retrieved summaries successfully");
+      res.json(data);
+    } catch (error) {
+      console.error("Error fetching world summaries:", error);
+      res.status(500).json({ error: "Failed to fetch world summaries" });
+    }
+  });
+
+  // Create world summary endpoint
+  app.post("/api/worlds/:worldId/summaries", async (req, res) => {
+    try {
+      const { worldId } = req.params;
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ error: "Email is required" });
+      }
+
+      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
+        "https://functionapp120251021090023.azurewebsites.net/api/echo";
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const params = new URLSearchParams({
+        ...(azureFunctionKey && { code: azureFunctionKey })
+      });
+
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log(`[WORLD SUMMARIES] Creating summary for world ${worldId}`);
+
+      const response = await fetch(fullUrl, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
+        },
+        body: JSON.stringify({
+          action: "createworldsummary",
+          email: email,
+          worldid: worldId
+        })
+      });
+
+      console.log("[WORLD SUMMARIES] Azure Function responded with status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[WORLD SUMMARIES] Azure Function error response");
+        throw new Error(`Azure Function error: ${response.status}`);
+      }
+
+      const text = await response.text();
+      if (!text) {
+        console.log('[WORLD SUMMARIES] Empty response from Azure Function');
+        return res.json({ ok: true });
+      }
+
+      const data = JSON.parse(text);
+      console.log("[WORLD SUMMARIES] Summary created successfully");
+      res.json(data);
+    } catch (error) {
+      console.error("Error creating world summary:", error);
+      res.status(500).json({ error: "Failed to create world summary" });
+    }
+  });
+
   // Chat endpoint - proxies to Azure Function (avoids CORS)
   app.post("/api/chat", async (req, res) => {
     try {
