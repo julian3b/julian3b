@@ -29,7 +29,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Plus, Trash2, Settings, Edit } from "lucide-react";
+import { Loader2, Plus, Trash2, Settings, Edit, Sparkles } from "lucide-react";
 import type { World, InsertWorld } from "@shared/schema";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 
@@ -341,6 +341,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                     <span className="text-muted-foreground">Conversation Style:</span>
                     <span className="font-medium capitalize">{world.conversationStyle}</span>
                   </div>
+                  <div className="flex justify-between pt-2 border-t">
+                    <span className="text-muted-foreground text-xs">Last Summary:</span>
+                    <span className="font-medium text-xs" data-testid={`text-last-summary-${world.id}`}>Never</span>
+                  </div>
                 </CardContent>
                 <CardFooter className="flex gap-2">
                   <Button
@@ -352,6 +356,16 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                   >
                     <Edit className="w-4 h-4 mr-2" />
                     Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="flex-1"
+                    onClick={() => {/* TODO: Handle summarize */}}
+                    data-testid={`button-summarize-world-${world.id}`}
+                  >
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Summarize
                   </Button>
                   <Button
                     variant="destructive"
