@@ -791,17 +791,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log("[WORLD SUMMARIES] Full Azure response:", JSON.stringify(data, null, 2));
       
-      // Azure Function returns 'items' in PascalCase, transform to camelCase for frontend
-      const rawSummaries = data.items || data.summaries || data.Items || data.Summaries || [];
+      // Azure Function returns 'slices' array
+      const rawSlices = data.slices || [];
       
-      console.log("[WORLD SUMMARIES] Extracted summaries array:", JSON.stringify(rawSummaries, null, 2));
+      console.log("[WORLD SUMMARIES] Extracted slices array:", JSON.stringify(rawSlices, null, 2));
       
-      // Transform PascalCase to camelCase
-      const summaries = rawSummaries.map((summary: any) => ({
-        id: summary.Id || summary.id,
-        worldId: summary.WorldId || summary.worldId,
-        summary: summary.Summary || summary.summary,
-        createdUtc: summary.CreatedUtc || summary.createdUtc,
+      // Transform to camelCase for frontend
+      const summaries = rawSlices.map((slice: any) => ({
+        fromUtc: slice.fromUtc,
+        toUtc: slice.toUtc,
+        createdUtc: slice.createdUtc,
+        summary: slice.summary,
       }));
       
       console.log(`[WORLD SUMMARIES] Retrieved and transformed ${summaries.length} summaries to camelCase`);

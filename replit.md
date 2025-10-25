@@ -6,6 +6,8 @@ This is a full-stack AI chatbot web application designed to provide a modern, in
 
 ## Recent Changes
 
+- **October 25, 2025**: Fixed world summary date display - corrected backend to extract `slices` array from Azure response instead of `items`/`summaries`, properly displaying "Last Summary" dates in World Settings
+- **October 25, 2025**: Fixed Azure Function parameter naming - changed `worldId` to `worldid` (lowercase) in GET summaries request to match Azure Function expectations
 - **October 25, 2025**: Added world summary feature - new "Summarize" button in World Settings creates AI-generated summaries of world chat history, with "Last Summary" date displayed below Conversation Style
 - **October 25, 2025**: Added delete message functionality for world chats - each message in world chats now has a trash icon button that allows users to delete individual messages from Azure storage
 - **October 25, 2025**: Fixed message display to include full Azure message IDs - ensures all message data from Azure is properly stored and accessible for operations like deletion
