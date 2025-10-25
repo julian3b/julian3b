@@ -860,8 +860,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = JSON.parse(text);
+      console.log("[WORLD SUMMARIES] Azure response data:", JSON.stringify(data, null, 2));
       console.log("[WORLD SUMMARIES] Summary created successfully");
-      res.json(data);
+      res.json({ ok: true, ...data });
     } catch (error) {
       console.error("Error creating world summary:", error);
       res.status(500).json({ error: "Failed to create world summary" });

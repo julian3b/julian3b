@@ -152,12 +152,14 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
       return response.json();
     },
     onSuccess: (data, worldId) => {
-      // Refetch summaries for this world
-      fetchWorldSummaries(worldId);
       toast({
         title: "Success",
         description: "Summary created successfully!",
       });
+      // Delay refetch to allow Azure to process
+      setTimeout(() => {
+        fetchWorldSummaries(worldId);
+      }, 500);
     },
     onError: (error) => {
       toast({
