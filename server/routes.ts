@@ -788,8 +788,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = JSON.parse(text);
-      console.log("[WORLD SUMMARIES] Retrieved summaries successfully");
-      res.json(data);
+      
+      // Azure Function returns 'items' in PascalCase, transform to camelCase for frontend
+      const rawSummaries = data.items || data.summaries || [];
+      
+      console.log("[WORLD SUMMARIES] Raw data from Azure Function:", JSON.stringify(rawSummaries, null, 2));
+      
+      // Transform PascalCase to camelCase
+      const summaries = rawSummaries.map((summary: any) => ({
+        id: summary.Id || summary.id,
+        worldId: summary.WorldId || summary.worldId,
+        summary: summary.Summary || summary.summary,
+        createdUtc: summary.CreatedUtc || summary.createdUtc,
+      }));
+      
+      console.log(`[WORLD SUMMARIES] Retrieved and transformed ${summaries.length} summaries to camelCase`);
+      
+      res.json({ ok: true, summaries });
     } catch (error) {
       console.error("Error fetching world summaries:", error);
       res.status(500).json({ error: "Failed to fetch world summaries" });

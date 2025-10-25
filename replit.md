@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application designed to provide a modern, in
 
 ## Recent Changes
 
+- **October 25, 2025**: Added world summary feature - new "Summarize" button in World Settings creates AI-generated summaries of world chat history, with "Last Summary" date displayed below Conversation Style
 - **October 25, 2025**: Added delete message functionality for world chats - each message in world chats now has a trash icon button that allows users to delete individual messages from Azure storage
 - **October 25, 2025**: Fixed message display to include full Azure message IDs - ensures all message data from Azure is properly stored and accessible for operations like deletion
 - **October 24, 2025**: Moved World Settings to icon-based navigation - replaced tab with globe icon button next to user menu, hidden when not logged in for cleaner interface
@@ -48,8 +49,10 @@ Preferred communication style: Simple, everyday language.
 - `/api/auth/login`, `/api/auth/signup`: Proxies to Azure Functions for authentication.
 - `/api/chat`: Proxies chat messages to Azure Functions, supporting global settings or world-specific overrides including detailed world context (characters, events, scenario, etc.).
 - `/api/chat/history`, `/api/chat/world-history`: Retrieves global and world-specific chat histories from Azure.
+- `/api/chat/world-message` (DELETE): Deletes individual messages from world chats.
 - `/api/settings/get`, `/api/settings/save`: Manages user AI preferences.
 - `/api/worlds` (GET, POST, PUT, DELETE): Manages "Worlds" creation, retrieval, updates, and deletion in Azure.
+- `/api/worlds/:worldId/summaries` (GET, POST): Retrieves world summaries and creates new AI-generated summaries of world chat history.
 
 **Authentication Proxy Pattern:** Express server forwards authentication requests to Azure Functions, centralizing authentication logic.
 
@@ -71,7 +74,7 @@ Preferred communication style: Simple, everyday language.
 **Azure Functions:**
 - Primary backend for authentication (`AZURE_AUTH_URL`), chat, history, and settings storage (`AZURE_FUNCTION_URL`).
 - All communication is via REST API with JSON payloads over HTTPS.
-- Supports actions for login, account creation, global chat, world-specific chat (`addworldchat`), history retrieval (`history`, `getworldchats`), setting management (`getSettings`, `saveSettings`), world CRUD operations (`createworld`, `getworlds`, `editworld`, `deleteworld`), and message deletion (`deleteworldmessage`).
+- Supports actions for login, account creation, global chat, world-specific chat (`addworldchat`), history retrieval (`history`, `getworldchats`), setting management (`getSettings`, `saveSettings`), world CRUD operations (`createworld`, `getworlds`, `editworld`, `deleteworld`), message deletion (`deleteworldmessage`), and world summaries (`getworldsummaries`, `createworldsummary`).
 
 **Database (Configured but Not Active):**
 - Neon Serverless PostgreSQL via `@neondatabase/serverless`.
