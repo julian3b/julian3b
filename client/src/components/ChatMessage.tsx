@@ -1,14 +1,19 @@
-import { Bot, User } from "lucide-react";
+import { Bot, User, Trash2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 type Message = {
   id: string;
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  azureMessageId?: string;
 };
 
 type ChatMessageProps = {
   message: Message;
+  worldId?: string;
+  userEmail?: string;
+  onDelete?: (messageId: string) => Promise<void>;
 };
 
 function formatTimestamp(date: Date): string {
@@ -27,9 +32,18 @@ function formatTimestamp(date: Date): string {
   return `${month}/${day}/${year} ${hoursStr}:${minutes} ${ampm}`;
 }
 
-export function ChatMessage({ message }: ChatMessageProps) {
+export function ChatMessage({ message, worldId, userEmail, onDelete }: ChatMessageProps) {
   const isUser = message.role === "user";
   const time = formatTimestamp(message.timestamp);
+  const canDelete = worldId && message.azureMessageId && onDelete;
+
+  const handleDelete = async () => {
+    if (!canDelete || !message.azureMessageId) return;
+    
+    if (confirm("Are you sure you want to delete this message?")) {
+      await onDelete(message.azureMessageId);
+    }
+  };
 
   return (
     <div
@@ -55,9 +69,22 @@ export function ChatMessage({ message }: ChatMessageProps) {
             dangerouslySetInnerHTML={{ __html: message.content }}
           />
         </div>
-        <span className="text-xs text-muted-foreground mt-1 px-2 opacity-70">
-          {time}
-        </span>
+        <div className="flex items-center gap-2 mt-1 px-2">
+          <span className="text-xs text-muted-foreground opacity-70">
+            {time}
+          </span>
+          {canDelete && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-5 w-5 opacity-50 hover:opacity-100 hover:text-destructive"
+              onClick={handleDelete}
+              data-testid={`button-delete-message-${message.id}`}
+            >
+              <Trash2 className="w-3 h-3" />
+            </Button>
+          )}
+        </div>
       </div>
 
       {isUser && (

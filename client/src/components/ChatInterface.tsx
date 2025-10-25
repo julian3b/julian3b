@@ -17,6 +17,7 @@ type Message = {
   role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  azureMessageId?: string; // Row key from Azure for deletion
 };
 
 type ChatInterfaceProps = {
@@ -103,19 +104,21 @@ export function ChatInterface({
         // Add user message
         if (item.input) {
           historyMessages.push({
-            id: `history-user-${index}`,
+            id: `history-user-${item.id || index}`,
             role: "user",
             content: item.input,
             timestamp: new Date(item.createdUtc || Date.now()),
+            azureMessageId: item.id, // Store Azure row key for deletion
           });
         }
         // Add AI reply
         if (item.aiReply) {
           historyMessages.push({
-            id: `history-ai-${index}`,
+            id: `history-ai-${item.id || index}`,
             role: "assistant",
             content: item.aiReply,
             timestamp: new Date(item.createdUtc || Date.now()),
+            azureMessageId: item.id, // Store Azure row key for deletion
           });
         }
       });
@@ -256,7 +259,34 @@ export function ChatInterface({
           )}
 
           {messages.map((message) => (
-            <ChatMessage key={message.id} message={message} />
+            <ChatMessage 
+              key={message.id} 
+              message={message}
+              worldId={activeWorldId || undefined}
+              userEmail={userEmail}
+              onDelete={activeWorldId ? async (messageId: string) => {
+                // Delete the message from Azure
+                try {
+                  const response = await fetch("/api/chat/world-message", {
+                    method: "DELETE",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                      email: userEmail,
+                      worldId: activeWorldId,
+                      messageId: messageId,
+                    }),
+                  });
+                  if (response.ok) {
+                    // Refetch world history to update the UI
+                    refetchWorldHistory();
+                  }
+                } catch (error) {
+                  console.error("Error deleting message:", error);
+                }
+              } : undefined}
+            />
           ))}
 
           {isLoading && (

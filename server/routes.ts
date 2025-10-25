@@ -290,6 +290,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Delete world message endpoint
+  app.delete("/api/chat/world-message", async (req, res) => {
+    try {
+      const { email, worldId, messageId } = req.body;
+
+      if (!email || !worldId || !messageId) {
+        return res.status(400).json({ error: "Email, worldId, and messageId are required" });
+      }
+
+      const azureFunctionUrl = process.env.AZURE_FUNCTION_URL || 
+        "https://functionapp120251021090023.azurewebsites.net/api/echo";
+      
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const params = new URLSearchParams({
+        ...(azureFunctionKey && { code: azureFunctionKey })
+      });
+
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log("[DELETE-MESSAGE] Deleting world message (email and IDs not logged)");
+
+      const response = await fetch(fullUrl, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
+        },
+        body: JSON.stringify({
+          action: "deleteworldmessage",
+          worldid: worldId,
+          email: email,
+          messageid: messageId
+        })
+      });
+
+      console.log("[DELETE-MESSAGE] Azure Function responded with status:", response.status);
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("[DELETE-MESSAGE] Azure Function error response");
+        throw new Error(`Azure Function error: ${response.status}`);
+      }
+
+      const text = await response.text();
+      if (!text) {
+        console.log('[DELETE-MESSAGE] Empty response from Azure Function');
+        return res.json({ ok: true, deleted: true });
+      }
+
+      const data = JSON.parse(text);
+      console.log(`[DELETE-MESSAGE] Deleted message successfully`);
+      res.json(data);
+    } catch (error) {
+      console.error("Error deleting world message:", error);
+      res.status(500).json({ error: "Failed to delete world message" });
+    }
+  });
+
   // Get user settings endpoint
   app.post("/api/settings/get", async (req, res) => {
     try {

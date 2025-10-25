@@ -4,6 +4,13 @@
 
 This is a full-stack AI chatbot web application designed to provide a modern, interactive conversational experience with an AI assistant. Built with React, Express, and TypeScript, the application focuses on user authentication, personalized AI interactions, and a unique "Worlds" feature for creating distinct AI personalities and contexts. The project aims to offer a highly customizable and engaging platform for diverse conversational needs, from productivity to creative roleplay.
 
+## Recent Changes
+
+- **October 25, 2025**: Added delete message functionality for world chats - each message in world chats now has a trash icon button that allows users to delete individual messages from Azure storage
+- **October 25, 2025**: Fixed message display to include full Azure message IDs - ensures all message data from Azure is properly stored and accessible for operations like deletion
+- **October 24, 2025**: Moved World Settings to icon-based navigation - replaced tab with globe icon button next to user menu, hidden when not logged in for cleaner interface
+- **October 24, 2025**: Made world headers clickable in World Settings - clicking a world card header navigates directly to that world's chat tab for faster access
+
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
@@ -64,7 +71,7 @@ Preferred communication style: Simple, everyday language.
 **Azure Functions:**
 - Primary backend for authentication (`AZURE_AUTH_URL`), chat, history, and settings storage (`AZURE_FUNCTION_URL`).
 - All communication is via REST API with JSON payloads over HTTPS.
-- Supports actions for login, account creation, global chat, world-specific chat (`addworldchat`), history retrieval (`history`, `getworldchats`), setting management (`getSettings`, `saveSettings`), and world CRUD operations (`createworld`, `getworlds`, `editworld`, `deleteworld`).
+- Supports actions for login, account creation, global chat, world-specific chat (`addworldchat`), history retrieval (`history`, `getworldchats`), setting management (`getSettings`, `saveSettings`), world CRUD operations (`createworld`, `getworlds`, `editworld`, `deleteworld`), and message deletion (`deleteworldmessage`).
 
 **Database (Configured but Not Active):**
 - Neon Serverless PostgreSQL via `@neondatabase/serverless`.
