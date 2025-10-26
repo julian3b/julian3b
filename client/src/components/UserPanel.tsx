@@ -170,11 +170,20 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
       });
       
       // Send verification code
-      await handleSendCode();
+      const codeSent = await handleSendCode();
       
-      // Transition to verification flow
-      setAuthFlow('verifying');
-      setVerificationCode("");
+      // Only transition to verification if code was sent successfully
+      if (codeSent) {
+        setAuthFlow('verifying');
+        setVerificationCode("");
+      } else {
+        // Stay on signup form - user can try again or contact support
+        toast({
+          title: t('common.error'),
+          description: t('auth.verificationFailed'),
+          variant: "destructive",
+        });
+      }
     } catch (error) {
       console.error('Signup error:', error);
       toast({
