@@ -6,6 +6,8 @@ This is a full-stack AI chatbot web application designed to provide a modern, in
 
 ## Recent Changes
 
+- **October 26, 2025**: Implemented full internationalization (i18n) - application now supports English and Spanish with automatic language detection based on browser locale; Spanish-speaking regions get Spanish by default, with manual language switcher in user settings
+- **October 26, 2025**: Fixed ChatInput send button positioning - button now properly displays inside the textarea on the right side instead of outside on the left
 - **October 25, 2025**: Fixed world summary date display - corrected backend to extract `slices` array from Azure response instead of `items`/`summaries`, properly displaying "Last Summary" dates in World Settings
 - **October 25, 2025**: Fixed Azure Function parameter naming - changed `worldId` to `worldid` (lowercase) in GET summaries request to match Azure Function expectations
 - **October 25, 2025**: Added world summary feature - new "Summarize" button in World Settings creates AI-generated summaries of world chat history, with "Last Summary" date displayed below Conversation Style
@@ -28,15 +30,18 @@ Preferred communication style: Simple, everyday language.
 
 **Key Components & Features:**
 - `ChatInterface`: Manages chat state, auto-scrolling, history.
-- `ChatMessage`: Displays individual messages.
-- `ChatInput`: Textarea with send functionality.
+- `ChatMessage`: Displays individual messages with delete functionality for world chats.
+- `ChatInput`: Textarea with send button positioned inside the input field on the right.
 - `TabNavigation`: For multiple views and world-specific chats.
-- `UserPanel` & `UserSettings`: Authentication, profile, and comprehensive AI customization (model, temperature, response/conversation styles, custom personality).
+- `UserPanel` & `UserSettings`: Authentication, profile, comprehensive AI customization (model, temperature, response/conversation styles, custom personality), and language selection.
 - `Worlds`: Interface for managing separate chat contexts, each with unique AI settings and dedicated conversation history. This feature enables varied use cases like "Coding Assistant" or "Creative Writer" personalities.
 - `LandingPage`: Pre-authentication entry point.
 - `ThemeProvider`: Context-based theme management.
+- **Internationalization (i18n)**: Full multi-language support with automatic detection and manual override.
 
-**State Management:** User authentication, persistent user ID, and theme preferences are stored in `localStorage`. React Query handles API data fetching and caching.
+**State Management:** User authentication, persistent user ID, theme preferences, and language preference are stored in `localStorage`. React Query handles API data fetching and caching.
+
+**Internationalization (i18n):** Implemented using i18next and react-i18next with automatic language detection via i18next-browser-languagedetector. Supports English (default) and Spanish, with automatic detection based on browser locale. Spanish-speaking countries (es-*, es-MX, es-ES, etc.) automatically display Spanish UI. Users can manually override language selection via language switcher in user settings. Translation files located at `client/src/i18n/locales/en.json` and `client/src/i18n/locales/es.json` contain 100+ translation keys covering all UI text, labels, buttons, and messages. User-generated content (world names, chat messages, AI responses) remains in original language.
 
 ### Backend Architecture
 

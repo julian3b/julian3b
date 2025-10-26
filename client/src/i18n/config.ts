@@ -69,26 +69,6 @@ const detectLanguageByCountry = (): string => {
   return 'en'; // Default to English
 };
 
-// Custom language detector
-const customLanguageDetector = {
-  type: 'languageDetector' as const,
-  async: false,
-  detect: () => {
-    // Check localStorage first
-    const savedLanguage = localStorage.getItem('i18nextLng');
-    if (savedLanguage) {
-      return savedLanguage;
-    }
-    
-    // Detect by country/locale
-    return detectLanguageByCountry();
-  },
-  init: () => {},
-  cacheUserLanguage: (lng: string) => {
-    localStorage.setItem('i18nextLng', lng);
-  }
-};
-
 i18n
   .use(LanguageDetector)
   .use(initReactI18next)
