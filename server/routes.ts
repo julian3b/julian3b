@@ -254,6 +254,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ ok: false, error: "Email and code are required" });
       }
 
+      console.log(`[VERIFYCODE] 🔐 CODE RECEIVED FROM FRONTEND: "${code}"`);
+      console.log(`[VERIFYCODE] 📧 EMAIL: "${email}"`);
+
       const azureFunctionUrl = process.env.AZURE_AUTH_URL;
       
       if (!azureFunctionUrl) {
@@ -270,7 +273,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log(`[VERIFYCODE] Verifying code (email and code not logged for security)`);
+      
+      const azurePayload = {
+        action: 'verifycode',
+        email: email,
+        code: code
+      };
+      console.log(`[VERIFYCODE] 📤 SENDING TO AZURE:`, JSON.stringify(azurePayload));
       
       const response = await fetch(fullUrl, {
         method: 'POST',
@@ -278,11 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Content-Type': 'application/json',
           ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
         },
-        body: JSON.stringify({
-          action: 'verifycode',
-          email: email,
-          code: code
-        })
+        body: JSON.stringify(azurePayload)
       });
 
       console.log(`[VERIFYCODE] Azure Function responded with status: ${response.status}`);

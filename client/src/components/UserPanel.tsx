@@ -262,17 +262,23 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
       return;
     }
 
+    console.log('🔐 USER TYPED CODE:', verificationCode);
+    console.log('📧 EMAIL:', email);
+
     setIsLoading(true);
     try {
+      const payload = {
+        email,
+        code: verificationCode
+      };
+      console.log('📤 SENDING TO BACKEND:', payload);
+      
       const response = await fetch('/api/auth/verifycode', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          email,
-          code: verificationCode
-        })
+        body: JSON.stringify(payload)
       });
 
       const data = await response.json();
