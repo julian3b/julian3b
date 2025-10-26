@@ -46,7 +46,9 @@
     "deleteConfirm": "¿Estás seguro de que quieres eliminar este mensaje?",
     "loadingHistory": "Cargando historial de chat...",
     "errorLoadingHistory": "Error al cargar el historial de chat",
-    "useGlobalSettings": "Usar Configuración Global"
+    "useGlobalSettings": "Usar Configuración Global",
+    "welcomeTo": "Bienvenido a",
+    "startConversation": "Comienza una conversación escribiendo un mensaje a continuación"
   },
   "worlds": {
     "title": "Mundos",
@@ -91,18 +93,35 @@
     "saving": "Guardando...",
     "edit": "Editar",
     "responseStyles": {
-      "concise": "Conciso - Respuestas breves y directas",
-      "balanced": "Equilibrado - Detalle y longitud moderados",
-      "detailed": "Detallado - Respuestas completas y profundas",
-      "narrative": "Narrativo - Estilo descriptivo como una historia",
-      "actionPacked": "Lleno de Acción - Tono dinámico y emocionante"
+      "concise": "Conciso - Breve y directo",
+      "balanced": "Equilibrado - Claro y moderado",
+      "detailed": "Detallado - Explicaciones exhaustivas",
+      "comprehensive": "Completo - Profundo con ejemplos",
+      "bulletPoints": "Puntos clave - Listas organizadas",
+      "stepByStep": "Paso a paso - Instrucciones secuenciales",
+      "narrative": "Narrativo - Estilo de narración",
+      "dramatic": "Dramático - Teatral e intenso",
+      "immersive": "Inmersivo - Roleplay profundo y detallado",
+      "actionPacked": "Lleno de acción - Rápido y emocionante"
     },
     "conversationStyles": {
-      "professional": "Profesional - Formal y empresarial",
+      "professional": "Profesional - Formal y pulido",
+      "casual": "Casual - Relajado y conversacional",
       "friendly": "Amigable - Cálido y accesible",
-      "casual": "Casual - Relajado e informal",
-      "humorous": "Humorístico - Ingenioso y divertido",
-      "edgy": "Atrevido - Audaz y provocativo"
+      "technical": "Técnico - Preciso y especializado",
+      "enthusiastic": "Entusiasta - Positivo y alentador",
+      "witty": "Ingenioso - Humorístico e inteligente",
+      "empathetic": "Empático - Comprensivo y solidario",
+      "academic": "Académico - Erudito y formal",
+      "socratic": "Socrático - Interrogativo y reflexivo",
+      "playful": "Juguetón - Divertido y desenfadado",
+      "adventurous": "Aventurero - Audaz y emocionante",
+      "sarcastic": "Sarcástico - Ingenioso con filo",
+      "flirtatious": "Coqueto - Encantador y romántico",
+      "mysterious": "Misterioso - Enigmático e intrigante",
+      "dramatic": "Dramático - Teatral y expresivo",
+      "comedic": "Cómico - Enfocado en el humor",
+      "edgy": "Atrevido - Audaz y temas maduros"
     }
   },
   "settings": {
@@ -114,14 +133,48 @@
     "maxTokens": "Tokens Máximos",
     "maxTokensDescription": "Longitud máxima de respuesta",
     "responseStyle": "Estilo de Respuesta",
+    "responseStyleDescription": "Cómo la IA estructura y formatea las respuestas",
     "conversationStyle": "Estilo de Conversación",
+    "conversationStyleDescription": "El tono y personalidad de la IA",
     "customPersonality": "Personalidad Personalizada",
     "customPersonalityPlaceholder": "Describe cómo quieres que se comporte la IA...",
+    "customPersonalityDescription": "Instrucciones personalizadas para guiar el comportamiento de la IA",
     "saveSettings": "Guardar Configuración",
     "settingsSaved": "¡Configuración guardada exitosamente!",
     "settingsError": "Error al guardar configuración",
     "language": "Idioma",
-    "selectLanguage": "Seleccionar Idioma"
+    "selectLanguage": "Seleccionar Idioma",
+    "responseStyles": {
+      "concise": "Conciso - Respuestas breves y directas",
+      "balanced": "Equilibrado - Longitud clara y moderada",
+      "detailed": "Detallado - Explicaciones exhaustivas",
+      "comprehensive": "Completo - Profundo con ejemplos",
+      "bulletPoints": "Puntos clave - Listas organizadas",
+      "stepByStep": "Paso a paso - Instrucciones secuenciales",
+      "narrative": "Narrativo - Estilo de narración",
+      "dramatic": "Dramático - Teatral e intenso",
+      "immersive": "Inmersivo - Roleplay profundo y detallado",
+      "actionPacked": "Lleno de acción - Rápido y emocionante"
+    },
+    "conversationStyles": {
+      "professional": "Profesional - Formal y pulido",
+      "casual": "Casual - Relajado y conversacional",
+      "friendly": "Amigable - Cálido y accesible",
+      "technical": "Técnico - Preciso y especializado",
+      "enthusiastic": "Entusiasta - Positivo y alentador",
+      "witty": "Ingenioso - Humorístico e inteligente",
+      "empathetic": "Empático - Comprensivo y solidario",
+      "academic": "Académico - Erudito y formal",
+      "socratic": "Socrático - Interrogativo y reflexivo",
+      "playful": "Juguetón - Divertido y desenfadado",
+      "adventurous": "Aventurero - Audaz y emocionante",
+      "sarcastic": "Sarcástico - Ingenioso con filo",
+      "flirtatious": "Coqueto - Encantador y romántico",
+      "mysterious": "Misterioso - Enigmático e intrigante",
+      "dramatic": "Dramático - Teatral y expresivo",
+      "comedic": "Cómico - Enfocado en el humor",
+      "edgy": "Atrevido - Audaz y temas maduros"
+    }
   },
   "common": {
     "loading": "Cargando...",

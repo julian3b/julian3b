@@ -576,16 +576,16 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="concise">Concise - Brief, to-the-point</SelectItem>
-                    <SelectItem value="balanced">Balanced - Clear, moderate</SelectItem>
-                    <SelectItem value="detailed">Detailed - Thorough explanations</SelectItem>
-                    <SelectItem value="comprehensive">Comprehensive - In-depth with examples</SelectItem>
-                    <SelectItem value="bullet-points">Bullet Points - Organized lists</SelectItem>
-                    <SelectItem value="step-by-step">Step-by-Step - Sequential instructions</SelectItem>
-                    <SelectItem value="narrative">Narrative - Storytelling style</SelectItem>
-                    <SelectItem value="dramatic">Dramatic - Theatrical and intense</SelectItem>
-                    <SelectItem value="immersive">Immersive - Deep, detailed roleplay</SelectItem>
-                    <SelectItem value="action-packed">Action-Packed - Fast-paced and exciting</SelectItem>
+                    <SelectItem value="concise">{t('worlds.responseStyles.concise')}</SelectItem>
+                    <SelectItem value="balanced">{t('worlds.responseStyles.balanced')}</SelectItem>
+                    <SelectItem value="detailed">{t('worlds.responseStyles.detailed')}</SelectItem>
+                    <SelectItem value="comprehensive">{t('worlds.responseStyles.comprehensive')}</SelectItem>
+                    <SelectItem value="bullet-points">{t('worlds.responseStyles.bulletPoints')}</SelectItem>
+                    <SelectItem value="step-by-step">{t('worlds.responseStyles.stepByStep')}</SelectItem>
+                    <SelectItem value="narrative">{t('worlds.responseStyles.narrative')}</SelectItem>
+                    <SelectItem value="dramatic">{t('worlds.responseStyles.dramatic')}</SelectItem>
+                    <SelectItem value="immersive">{t('worlds.responseStyles.immersive')}</SelectItem>
+                    <SelectItem value="action-packed">{t('worlds.responseStyles.actionPacked')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -600,23 +600,23 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="professional">Professional - Formal and polished</SelectItem>
-                    <SelectItem value="casual">Casual - Relaxed and conversational</SelectItem>
-                    <SelectItem value="friendly">Friendly - Warm and approachable</SelectItem>
-                    <SelectItem value="technical">Technical - Precise and specialized</SelectItem>
-                    <SelectItem value="enthusiastic">Enthusiastic - Upbeat and encouraging</SelectItem>
-                    <SelectItem value="witty">Witty - Humorous and clever</SelectItem>
-                    <SelectItem value="empathetic">Empathetic - Supportive and understanding</SelectItem>
-                    <SelectItem value="academic">Academic - Scholarly and formal</SelectItem>
-                    <SelectItem value="socratic">Socratic - Questioning and thought-provoking</SelectItem>
-                    <SelectItem value="playful">Playful - Fun and lighthearted</SelectItem>
-                    <SelectItem value="adventurous">Adventurous - Bold and exciting</SelectItem>
-                    <SelectItem value="sarcastic">Sarcastic - Witty with edge</SelectItem>
-                    <SelectItem value="flirtatious">Flirtatious - Charming and romantic</SelectItem>
-                    <SelectItem value="mysterious">Mysterious - Enigmatic and intriguing</SelectItem>
-                    <SelectItem value="dramatic">Dramatic - Theatrical and expressive</SelectItem>
-                    <SelectItem value="comedic">Comedic - Focused on humor</SelectItem>
-                    <SelectItem value="edgy">Edgy - Bold and mature themes</SelectItem>
+                    <SelectItem value="professional">{t('worlds.conversationStyles.professional')}</SelectItem>
+                    <SelectItem value="casual">{t('worlds.conversationStyles.casual')}</SelectItem>
+                    <SelectItem value="friendly">{t('worlds.conversationStyles.friendly')}</SelectItem>
+                    <SelectItem value="technical">{t('worlds.conversationStyles.technical')}</SelectItem>
+                    <SelectItem value="enthusiastic">{t('worlds.conversationStyles.enthusiastic')}</SelectItem>
+                    <SelectItem value="witty">{t('worlds.conversationStyles.witty')}</SelectItem>
+                    <SelectItem value="empathetic">{t('worlds.conversationStyles.empathetic')}</SelectItem>
+                    <SelectItem value="academic">{t('worlds.conversationStyles.academic')}</SelectItem>
+                    <SelectItem value="socratic">{t('worlds.conversationStyles.socratic')}</SelectItem>
+                    <SelectItem value="playful">{t('worlds.conversationStyles.playful')}</SelectItem>
+                    <SelectItem value="adventurous">{t('worlds.conversationStyles.adventurous')}</SelectItem>
+                    <SelectItem value="sarcastic">{t('worlds.conversationStyles.sarcastic')}</SelectItem>
+                    <SelectItem value="flirtatious">{t('worlds.conversationStyles.flirtatious')}</SelectItem>
+                    <SelectItem value="mysterious">{t('worlds.conversationStyles.mysterious')}</SelectItem>
+                    <SelectItem value="dramatic">{t('worlds.conversationStyles.dramatic')}</SelectItem>
+                    <SelectItem value="comedic">{t('worlds.conversationStyles.comedic')}</SelectItem>
+                    <SelectItem value="edgy">{t('worlds.conversationStyles.edgy')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

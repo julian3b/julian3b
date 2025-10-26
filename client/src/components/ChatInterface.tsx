@@ -250,10 +250,10 @@ export function ChatInterface({
             <div className="flex items-center justify-center h-[400px]">
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
-                  {world ? `Welcome to ${world.name}` : "Welcome to AI Chat"}
+                  {world ? `${t('chat.welcomeTo')} ${world.name}` : t('landing.title')}
                 </h3>
                 <p className="text-muted-foreground">
-                  {t('chat.inputPlaceholder')}
+                  {t('chat.startConversation')}
                 </p>
               </div>
             </div>

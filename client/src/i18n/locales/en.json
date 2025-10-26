@@ -54,7 +54,9 @@
     "deleteConfirm": "Are you sure you want to delete this message?",
     "loadingHistory": "Loading chat history...",
     "errorLoadingHistory": "Error loading chat history",
-    "useGlobalSettings": "Use Global Settings"
+    "useGlobalSettings": "Use Global Settings",
+    "welcomeTo": "Welcome to",
+    "startConversation": "Start a conversation by typing a message below"
   },
   "worlds": {
     "title": "Worlds",
@@ -99,18 +101,35 @@
     "saving": "Saving...",
     "edit": "Edit",
     "responseStyles": {
-      "concise": "Concise - Brief, to-the-point responses",
-      "balanced": "Balanced - Moderate detail and length",
-      "detailed": "Detailed - Comprehensive, in-depth answers",
-      "narrative": "Narrative - Story-like, descriptive style",
-      "actionPacked": "Action-Packed - Dynamic, exciting tone"
+      "concise": "Concise - Brief, to-the-point",
+      "balanced": "Balanced - Clear, moderate",
+      "detailed": "Detailed - Thorough explanations",
+      "comprehensive": "Comprehensive - In-depth with examples",
+      "bulletPoints": "Bullet Points - Organized lists",
+      "stepByStep": "Step-by-Step - Sequential instructions",
+      "narrative": "Narrative - Storytelling style",
+      "dramatic": "Dramatic - Theatrical and intense",
+      "immersive": "Immersive - Deep, detailed roleplay",
+      "actionPacked": "Action-Packed - Fast-paced and exciting"
     },
     "conversationStyles": {
-      "professional": "Professional - Formal and business-like",
+      "professional": "Professional - Formal and polished",
+      "casual": "Casual - Relaxed and conversational",
       "friendly": "Friendly - Warm and approachable",
-      "casual": "Casual - Relaxed and informal",
-      "humorous": "Humorous - Witty and fun",
-      "edgy": "Edgy - Bold and provocative"
+      "technical": "Technical - Precise and specialized",
+      "enthusiastic": "Enthusiastic - Upbeat and encouraging",
+      "witty": "Witty - Humorous and clever",
+      "empathetic": "Empathetic - Supportive and understanding",
+      "academic": "Academic - Scholarly and formal",
+      "socratic": "Socratic - Questioning and thought-provoking",
+      "playful": "Playful - Fun and lighthearted",
+      "adventurous": "Adventurous - Bold and exciting",
+      "sarcastic": "Sarcastic - Witty with edge",
+      "flirtatious": "Flirtatious - Charming and romantic",
+      "mysterious": "Mysterious - Enigmatic and intriguing",
+      "dramatic": "Dramatic - Theatrical and expressive",
+      "comedic": "Comedic - Focused on humor",
+      "edgy": "Edgy - Bold and mature themes"
     }
   },
   "settings": {
@@ -122,14 +141,48 @@
     "maxTokens": "Max Tokens",
     "maxTokensDescription": "Maximum response length",
     "responseStyle": "Response Style",
+    "responseStyleDescription": "How the AI structures and formats responses",
     "conversationStyle": "Conversation Style",
+    "conversationStyleDescription": "The tone and personality of the AI",
     "customPersonality": "Custom Personality",
     "customPersonalityPlaceholder": "Describe how you want the AI to behave...",
+    "customPersonalityDescription": "Custom instructions to guide the AI's behavior",
     "saveSettings": "Save Settings",
     "settingsSaved": "Settings saved successfully!",
     "settingsError": "Failed to save settings",
     "language": "Language",
-    "selectLanguage": "Select Language"
+    "selectLanguage": "Select Language",
+    "responseStyles": {
+      "concise": "Concise - Brief, to-the-point answers",
+      "balanced": "Balanced - Clear, moderate length",
+      "detailed": "Detailed - Thorough explanations",
+      "comprehensive": "Comprehensive - In-depth with examples",
+      "bulletPoints": "Bullet Points - Organized lists",
+      "stepByStep": "Step-by-Step - Sequential instructions",
+      "narrative": "Narrative - Storytelling style",
+      "dramatic": "Dramatic - Theatrical and intense",
+      "immersive": "Immersive - Deep, detailed roleplay",
+      "actionPacked": "Action-Packed - Fast-paced and exciting"
+    },
+    "conversationStyles": {
+      "professional": "Professional - Formal and polished",
+      "casual": "Casual - Relaxed and conversational",
+      "friendly": "Friendly - Warm and approachable",
+      "technical": "Technical - Precise and specialized",
+      "enthusiastic": "Enthusiastic - Upbeat and encouraging",
+      "witty": "Witty - Humorous and clever",
+      "empathetic": "Empathetic - Supportive and understanding",
+      "academic": "Academic - Scholarly and formal",
+      "socratic": "Socratic - Questioning and thought-provoking",
+      "playful": "Playful - Fun and lighthearted",
+      "adventurous": "Adventurous - Bold and exciting",
+      "sarcastic": "Sarcastic - Witty with edge",
+      "flirtatious": "Flirtatious - Charming and romantic",
+      "mysterious": "Mysterious - Enigmatic and intriguing",
+      "dramatic": "Dramatic - Theatrical and expressive",
+      "comedic": "Comedic - Focused on humor",
+      "edgy": "Edgy - Bold and mature themes"
+    }
   },
   "common": {
     "loading": "Loading...",

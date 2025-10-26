@@ -39,16 +39,16 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
   return (
     <div className="border-t border-border backdrop-blur-sm bg-background/95 p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="relative">
+        <div className="flex items-center gap-2">
           <textarea
             ref={textareaRef}
             value={message}
             onChange={handleInput}
             onKeyDown={handleKeyDown}
-            placeholder={t('chat.inputPlaceholder')}
+            placeholder="Type your message..."
             disabled={disabled}
             data-testid="input-chat-message"
-            className="w-full rounded-xl border-2 border-input bg-background px-4 py-3 pr-14 text-base resize-none focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] max-h-[200px]"
+            className="w-full rounded-xl border-2 border-input bg-background px-4 py-3 text-base resize-none focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] max-h-[200px]"
             rows={1}
           />
           <Button
@@ -56,7 +56,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
             disabled={!message.trim() || disabled}
             size="icon"
             data-testid="button-send-message"
-            className="absolute right-2 top-1/2 -translate-y-1/2 h-9 w-9"
+            className="h-10 w-10 shrink-0"
           >
             <Send className="h-4 w-4" />
           </Button>
