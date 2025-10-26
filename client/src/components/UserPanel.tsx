@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ type UserPanelProps = {
 };
 
 export function UserPanel({ isOpen, onClose }: UserPanelProps) {
+  const { t } = useTranslation();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -52,8 +54,8 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
       // Check if login was successful
       if (!response.ok || !data.ok) {
         toast({
-          title: "Login Failed",
-          description: data.error || data.message || 'Invalid credentials',
+          title: t('auth.loginFailed'),
+          description: data.error || data.message || t('auth.invalidCredentials'),
           variant: "destructive",
         });
         return;
@@ -61,8 +63,8 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
 
       // Show success message
       toast({
-        title: "Welcome Back!",
-        description: "You have successfully logged in.",
+        title: t('auth.welcomeBack'),
+        description: t('auth.loginSuccess'),
       });
       
       // Store user data in localStorage
@@ -82,8 +84,8 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
     } catch (error) {
       console.error('Login error:', error);
       toast({
-        title: "Error",
-        description: "Login failed. Please try again.",
+        title: t('common.error'),
+        description: t('auth.loginFailed'),
         variant: "destructive",
       });
     }
@@ -112,8 +114,8 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
       // Check if signup was successful
       if (!data.ok) {
         toast({
-          title: "Signup Failed",
-          description: data.error || 'Unable to create account',
+          title: t('auth.signupFailed'),
+          description: data.error || t('auth.signupFailed'),
           variant: "destructive",
         });
         return;
@@ -121,8 +123,8 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
 
       // Show success message
       toast({
-        title: "Account Created!",
-        description: "Your account has been successfully created.",
+        title: t('auth.accountCreated'),
+        description: t('auth.signupSuccess'),
       });
       
       // Store user data in localStorage
@@ -142,8 +144,8 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
     } catch (error) {
       console.error('Signup error:', error);
       toast({
-        title: "Error",
-        description: "Signup failed. Please try again.",
+        title: t('common.error'),
+        description: t('auth.signupFailed'),
         variant: "destructive",
       });
     }
@@ -159,19 +161,19 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
       <Sheet open={isOpen} onOpenChange={onClose}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto" data-testid="panel-user-logged-in">
           <SheetHeader>
-            <SheetTitle>Account</SheetTitle>
-            <SheetDescription>Manage your account and preferences</SheetDescription>
+            <SheetTitle>{t('auth.account')}</SheetTitle>
+            <SheetDescription>{t('auth.accountDescription')}</SheetDescription>
           </SheetHeader>
 
           <Tabs defaultValue="profile" className="mt-6">
             <TabsList className="grid w-full grid-cols-2">
               <TabsTrigger value="profile" data-testid="tab-profile">
                 <User className="w-4 h-4 mr-2" />
-                Profile
+                {t('auth.profile')}
               </TabsTrigger>
               <TabsTrigger value="settings" data-testid="tab-settings">
                 <Settings className="w-4 h-4 mr-2" />
-                Settings
+                {t('settings.title')}
               </TabsTrigger>
             </TabsList>
 
@@ -188,7 +190,7 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
 
               <div className="space-y-4 pt-4 border-t">
                 <div>
-                  <Label className="text-sm text-muted-foreground">Member since</Label>
+                  <Label className="text-sm text-muted-foreground">{t('auth.memberSince')}</Label>
                   <p className="text-sm">{new Date(userData.loginTime).toLocaleDateString()}</p>
                 </div>
               </div>
@@ -200,7 +202,7 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
                 data-testid="button-logout"
               >
                 <LogOut className="w-4 h-4 mr-2" />
-                Log Out
+                {t('auth.logout')}
               </Button>
             </TabsContent>
 
@@ -217,22 +219,22 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent data-testid="panel-user-login">
         <SheetHeader>
-          <SheetTitle>{isLogin ? "Log In" : "Create Account"}</SheetTitle>
+          <SheetTitle>{isLogin ? t('auth.login') : t('auth.signup')}</SheetTitle>
           <SheetDescription>
             {isLogin 
-              ? "Enter your credentials to access your account" 
-              : "Create a new account to get started"}
+              ? t('auth.loginPrompt') 
+              : t('auth.signupPrompt')}
           </SheetDescription>
         </SheetHeader>
 
         <form onSubmit={isLogin ? handleLogin : handleSignup} className="mt-6 space-y-4">
           {!isLogin && (
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
+              <Label htmlFor="name">{t('auth.name')}</Label>
               <Input
                 id="name"
                 type="text"
-                placeholder="Your name"
+                placeholder={t('auth.name')}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -242,11 +244,11 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('auth.email')}</Label>
             <Input
               id="email"
               type="email"
-              placeholder="you@example.com"
+              placeholder={t('auth.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -255,7 +257,7 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('auth.password')}</Label>
             <Input
               id="password"
               type="password"
@@ -273,7 +275,7 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
             data-testid="button-submit"
             disabled={!isFormValid}
           >
-            {isLogin ? "Log In" : "Create Account"}
+            {isLogin ? t('auth.login') : t('auth.signup')}
           </Button>
 
           <div className="text-center">
@@ -284,8 +286,8 @@ export function UserPanel({ isOpen, onClose }: UserPanelProps) {
               data-testid="button-toggle-mode"
             >
               {isLogin 
-                ? "Don't have an account? Sign up" 
-                : "Already have an account? Log in"}
+                ? t('auth.toggleToSignup') 
+                : t('auth.toggleToLogin')}
             </button>
           </div>
         </form>

@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import Home from "@/pages/Home";
 import NotFound from "@/pages/not-found";
+import "./i18n/config";
 
 function Router() {
   return (

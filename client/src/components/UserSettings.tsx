@@ -12,7 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Save } from "lucide-react";
+import { Loader2, Save, Languages } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { UserSettings } from "@shared/schema";
 
 type UserSettingsProps = {
@@ -20,6 +21,7 @@ type UserSettingsProps = {
 };
 
 export function UserSettings({ userEmail }: UserSettingsProps) {
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -67,8 +69,8 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
     } catch (error) {
       console.error('Error fetching settings:', error);
       toast({
-        title: "Error",
-        description: "Failed to load your settings. Using defaults.",
+        title: t('common.error'),
+        description: t('settings.settingsError'),
         variant: "destructive",
       });
     } finally {
@@ -101,14 +103,14 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
       }
 
       toast({
-        title: "Success",
-        description: "Your settings have been saved!",
+        title: t('common.success'),
+        description: t('settings.settingsSaved'),
       });
     } catch (error) {
       console.error('Error saving settings:', error);
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save your settings. Please try again.",
+        title: t('common.error'),
+        description: t('settings.settingsError'),
         variant: "destructive",
       });
     } finally {
@@ -126,19 +128,39 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
 
   return (
     <div className="space-y-6">
+      {/* Language Selection */}
+      <div className="space-y-2 pb-6 border-b">
+        <Label htmlFor="language">
+          <Languages className="w-4 h-4 inline mr-2" />
+          {t('settings.language')}
+        </Label>
+        <Select
+          value={i18n.language}
+          onValueChange={(lng) => i18n.changeLanguage(lng)}
+        >
+          <SelectTrigger id="language" data-testid="select-language">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="en">{t('languages.en')}</SelectItem>
+            <SelectItem value="es">{t('languages.es')}</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
       <div>
-        <h3 className="text-lg font-semibold mb-4">AI Settings</h3>
+        <h3 className="text-lg font-semibold mb-4">{t('settings.aiCustomization')}</h3>
         
         {/* Model Selection */}
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="model">AI Model</Label>
+            <Label htmlFor="model">{t('settings.selectModel')}</Label>
             <Select
               value={settings.model}
               onValueChange={(value) => setSettings({ ...settings, model: value as any })}
             >
               <SelectTrigger id="model" data-testid="select-model">
-                <SelectValue placeholder="Select model" />
+                <SelectValue placeholder={t('settings.selectModel')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="gpt-5-nano">GPT-5 Nano - $0.05/$0.40 per 1M tokens</SelectItem>
@@ -158,7 +180,7 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
           {/* Temperature Slider */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="temperature">Temperature</Label>
+              <Label htmlFor="temperature">{t('settings.temperature')}</Label>
               <span className="text-sm text-muted-foreground">{settings.temperature?.toFixed(1)}</span>
             </div>
             <Slider
@@ -171,14 +193,14 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
               data-testid="slider-temperature"
             />
             <p className="text-sm text-muted-foreground">
-              Lower = more focused, Higher = more creative
+              {t('settings.temperatureDescription')}
             </p>
           </div>
 
           {/* Max Tokens Slider */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="maxTokens">Max Response Length</Label>
+              <Label htmlFor="maxTokens">{t('settings.maxTokens')}</Label>
               <span className="text-sm text-muted-foreground">{settings.maxTokens} tokens</span>
             </div>
             <Slider
@@ -191,19 +213,19 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
               data-testid="slider-maxtokens"
             />
             <p className="text-sm text-muted-foreground">
-              Maximum length of AI responses
+              {t('settings.maxTokensDescription')}
             </p>
           </div>
 
           {/* Response Style */}
           <div className="space-y-2">
-            <Label htmlFor="responseStyle">Response Style</Label>
+            <Label htmlFor="responseStyle">{t('settings.responseStyle')}</Label>
             <Select
               value={settings.responseStyle}
               onValueChange={(value) => setSettings({ ...settings, responseStyle: value as any })}
             >
               <SelectTrigger id="responseStyle" data-testid="select-response-style">
-                <SelectValue placeholder="Select style" />
+                <SelectValue placeholder={t('settings.responseStyle')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="concise">Concise - Brief, to-the-point answers</SelectItem>
@@ -225,13 +247,13 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
 
           {/* Conversation Style */}
           <div className="space-y-2">
-            <Label htmlFor="conversationStyle">Conversation Style</Label>
+            <Label htmlFor="conversationStyle">{t('settings.conversationStyle')}</Label>
             <Select
               value={settings.conversationStyle}
               onValueChange={(value) => setSettings({ ...settings, conversationStyle: value as any })}
             >
               <SelectTrigger id="conversationStyle" data-testid="select-conversation-style">
-                <SelectValue placeholder="Select style" />
+                <SelectValue placeholder={t('settings.conversationStyle')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="professional">Professional - Formal and polished</SelectItem>
@@ -260,10 +282,10 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
 
           {/* Custom Personality */}
           <div className="space-y-2">
-            <Label htmlFor="customPersonality">Custom Personality / Instructions</Label>
+            <Label htmlFor="customPersonality">{t('settings.customPersonality')}</Label>
             <Textarea
               id="customPersonality"
-              placeholder="e.g., You are a helpful coding assistant who explains concepts with examples..."
+              placeholder={t('settings.customPersonalityPlaceholder')}
               value={settings.customPersonality}
               onChange={(e) => setSettings({ ...settings, customPersonality: e.target.value })}
               rows={4}
@@ -287,12 +309,12 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
           {isSaving ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Saving...
+              {t('worlds.saving')}
             </>
           ) : (
             <>
               <Save className="w-4 h-4 mr-2" />
-              Save Settings
+              {t('settings.saveSettings')}
             </>
           )}
         </Button>

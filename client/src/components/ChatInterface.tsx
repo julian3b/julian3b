@@ -10,6 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Loader2, Globe } from "lucide-react";
+import { useTranslation } from "react-i18next";
 import type { World } from "@shared/schema";
 
 type Message = {
@@ -35,6 +36,7 @@ export function ChatInterface({
   userEmail,
   world,
 }: ChatInterfaceProps) {
+  const { t } = useTranslation();
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
@@ -239,7 +241,7 @@ export function ChatInterface({
             <div className="flex items-center justify-center h-[400px]">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
-                <p className="text-muted-foreground">Loading world chat history...</p>
+                <p className="text-muted-foreground">{t('chat.loadingHistory')}</p>
               </div>
             </div>
           )}
@@ -251,7 +253,7 @@ export function ChatInterface({
                   {world ? `Welcome to ${world.name}` : "Welcome to AI Chat"}
                 </h3>
                 <p className="text-muted-foreground">
-                  Start a conversation by typing a message below
+                  {t('chat.inputPlaceholder')}
                 </p>
               </div>
             </div>

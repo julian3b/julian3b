@@ -1,45 +1,48 @@
 import { Button } from "@/components/ui/button";
 import { MessageSquare, Shield, Zap } from "lucide-react";
+import { useTranslation } from "react-i18next";
 
 type LandingPageProps = {
   onOpenLogin: () => void;
 };
 
 export function LandingPage({ onOpenLogin }: LandingPageProps) {
+  const { t } = useTranslation();
+  
   return (
     <div className="flex flex-col items-center justify-center h-full px-6 py-12">
       <div className="max-w-2xl text-center space-y-8">
         <div className="space-y-4">
           <h1 className="text-4xl font-bold tracking-tight">
-            Welcome to AI Chat
+            {t('landing.title')}
           </h1>
           <p className="text-xl text-muted-foreground">
-            Your intelligent conversation partner, powered by advanced AI
+            {t('landing.subtitle')}
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 my-12">
           <div className="flex flex-col items-center gap-3 p-6 rounded-lg bg-card">
             <MessageSquare className="w-10 h-10 text-primary" />
-            <h3 className="font-semibold">Smart Conversations</h3>
+            <h3 className="font-semibold">{t('landing.features.conversations.title')}</h3>
             <p className="text-sm text-muted-foreground text-center">
-              Engage in natural, intelligent conversations
+              {t('landing.features.conversations.description')}
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-3 p-6 rounded-lg bg-card">
             <Shield className="w-10 h-10 text-primary" />
-            <h3 className="font-semibold">Secure & Private</h3>
+            <h3 className="font-semibold">{t('landing.features.security.title')}</h3>
             <p className="text-sm text-muted-foreground text-center">
-              Your data is protected and encrypted
+              {t('landing.features.security.description')}
             </p>
           </div>
 
           <div className="flex flex-col items-center gap-3 p-6 rounded-lg bg-card">
             <Zap className="w-10 h-10 text-primary" />
-            <h3 className="font-semibold">Fast Responses</h3>
+            <h3 className="font-semibold">{t('landing.features.speed.title')}</h3>
             <p className="text-sm text-muted-foreground text-center">
-              Get instant, accurate answers
+              {t('landing.features.speed.description')}
             </p>
           </div>
         </div>
@@ -51,10 +54,10 @@ export function LandingPage({ onOpenLogin }: LandingPageProps) {
             className="px-8"
             data-testid="button-get-started"
           >
-            Get Started
+            {t('landing.getStarted')}
           </Button>
           <p className="text-sm text-muted-foreground">
-            Sign up or log in to start chatting
+            {t('landing.signupPrompt')}
           </p>
         </div>
       </div>

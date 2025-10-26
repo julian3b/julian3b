@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,6 +41,7 @@ type WorldsProps = {
 };
 
 export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingWorld, setEditingWorld] = useState<World | null>(null);
@@ -81,14 +83,14 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
       setIsCreateOpen(false);
       resetForm();
       toast({
-        title: "Success",
-        description: "World created successfully!",
+        title: t("common.success"),
+        description: t("worlds.createSuccess"),
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create world",
+        title: t("common.error"),
+        description: error instanceof Error ? error.message : t("worlds.createSuccess"),
         variant: "destructive",
       });
     },
@@ -104,14 +106,14 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
       setEditingWorld(null);
       resetForm();
       toast({
-        title: "Success",
-        description: "World updated successfully!",
+        title: t("common.success"),
+        description: t("worlds.updateSuccess"),
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to update world",
+        title: t("common.error"),
+        description: error instanceof Error ? error.message : t("worlds.updateSuccess"),
         variant: "destructive",
       });
     },
@@ -125,14 +127,14 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
       toast({
-        title: "Success",
-        description: "World deleted successfully!",
+        title: t("common.success"),
+        description: t("worlds.deleteSuccess"),
       });
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete world",
+        title: t("common.error"),
+        description: error instanceof Error ? error.message : t("worlds.deleteSuccess"),
         variant: "destructive",
       });
     },
@@ -153,8 +155,8 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
     },
     onSuccess: (data, worldId) => {
       toast({
-        title: "Success",
-        description: "Summary created successfully!",
+        title: t("common.success"),
+        description: t("worlds.summarySuccess"),
       });
       // Delay refetch to allow Azure to process
       setTimeout(() => {
@@ -163,8 +165,8 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
     },
     onError: (error) => {
       toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to create summary",
+        title: t("common.error"),
+        description: error instanceof Error ? error.message : t("worlds.summaryError"),
         variant: "destructive",
       });
     },
@@ -232,8 +234,8 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
   const handleCreate = () => {
     if (!formData.name) {
       toast({
-        title: "Error",
-        description: "World name is required",
+        title: t("common.error"),
+        description: t("worlds.worldNameRequired"),
         variant: "destructive",
       });
       return;
@@ -243,8 +245,8 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
     const validNamePattern = /^[a-zA-Z0-9_\- ]+$/;
     if (!validNamePattern.test(formData.name)) {
       toast({
-        title: "Error",
-        description: "World name can only contain letters, numbers, dashes, underscores, and spaces",
+        title: t("common.error"),
+        description: t("worlds.worldNameInvalid"),
         variant: "destructive",
       });
       return;
@@ -257,8 +259,8 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
 
     if (duplicateName) {
       toast({
-        title: "Error",
-        description: "A world with this name already exists. Please choose a different name.",
+        title: t("common.error"),
+        description: t("worlds.worldNameInvalid"),
         variant: "destructive",
       });
       return;
@@ -272,8 +274,8 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
 
     if (!formData.name) {
       toast({
-        title: "Error",
-        description: "World name is required",
+        title: t("common.error"),
+        description: t("worlds.worldNameRequired"),
         variant: "destructive",
       });
       return;
@@ -283,8 +285,8 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
     const validNamePattern = /^[a-zA-Z0-9_\- ]+$/;
     if (!validNamePattern.test(formData.name)) {
       toast({
-        title: "Error",
-        description: "World name can only contain letters, numbers, dashes, underscores, and spaces",
+        title: t("common.error"),
+        description: t("worlds.worldNameInvalid"),
         variant: "destructive",
       });
       return;
@@ -299,8 +301,8 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
 
     if (duplicateName) {
       toast({
-        title: "Error",
-        description: "A world with this name already exists. Please choose a different name.",
+        title: t("common.error"),
+        description: t("worlds.worldNameInvalid"),
         variant: "destructive",
       });
       return;
@@ -333,7 +335,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this world? This cannot be undone.")) {
+    if (confirm(t("worlds.deleteConfirm"))) {
       deleteMutation.mutate(id);
     }
   };
@@ -353,9 +355,9 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
       <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Worlds</h1>
+            <h1 className="text-3xl font-bold">{t("worlds.title")}</h1>
             <p className="text-muted-foreground mt-1">
-              Create separate chat contexts with unique AI personalities and settings
+              {t("worlds.subtitle")}
             </p>
           </div>
           <Button
@@ -363,7 +365,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
             data-testid="button-create-world"
           >
             <Plus className="w-4 h-4 mr-2" />
-            New World
+            {t("worlds.createWorld")}
           </Button>
         </div>
 
@@ -371,13 +373,13 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <Settings className="w-12 h-12 text-muted-foreground mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No worlds yet</h3>
+              <h3 className="text-lg font-semibold mb-2">{t("worlds.noWorlds")}</h3>
               <p className="text-muted-foreground text-center mb-4">
-                Create your first world to get started with custom AI personalities
+                {t("worlds.noWorldsDescription")}
               </p>
               <Button onClick={() => setIsCreateOpen(true)}>
                 <Plus className="w-4 h-4 mr-2" />
-                Create World
+                {t("worlds.createWorld")}
               </Button>
             </CardContent>
           </Card>
@@ -399,27 +401,27 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Model:</span>
+                    <span className="text-muted-foreground">{t("worlds.model")}:</span>
                     <span className="font-medium">{world.model}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Temperature:</span>
+                    <span className="text-muted-foreground">{t("worlds.temperature")}:</span>
                     <span className="font-medium">{world.temperature.toFixed(1)}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Response Style:</span>
+                    <span className="text-muted-foreground">{t("worlds.responseStyle")}:</span>
                     <span className="font-medium capitalize">{world.responseStyle}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Conversation Style:</span>
+                    <span className="text-muted-foreground">{t("worlds.conversationStyle")}:</span>
                     <span className="font-medium capitalize">{world.conversationStyle}</span>
                   </div>
                   <div className="flex justify-between pt-2 border-t">
-                    <span className="text-muted-foreground text-xs">Last Summary:</span>
+                    <span className="text-muted-foreground text-xs">{t("worlds.lastSummary")}:</span>
                     <span className="font-medium text-xs" data-testid={`text-last-summary-${world.id}`}>
                       {worldSummaries[world.id]?.lastSummary 
                         ? new Date(worldSummaries[world.id].lastSummary!).toLocaleDateString()
-                        : "Never"}
+                        : t("worlds.never")}
                     </span>
                   </div>
                 </CardContent>
@@ -432,7 +434,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                     data-testid={`button-edit-world-${world.id}`}
                   >
                     <Edit className="w-4 h-4 mr-2" />
-                    Edit
+                    {t("worlds.edit")}
                   </Button>
                   <Button
                     variant="outline"
@@ -447,7 +449,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                     ) : (
                       <Sparkles className="w-4 h-4 mr-2" />
                     )}
-                    Summarize
+                    {t("worlds.summarize")}
                   </Button>
                   <Button
                     variant="destructive"
@@ -477,19 +479,19 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
           <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
-                {editingWorld ? "Edit World" : "Create New World"}
+                {editingWorld ? t("worlds.editWorld") : t("worlds.createWorld")}
               </DialogTitle>
               <DialogDescription>
-                Configure the AI personality and behavior for this world
+                {t("worlds.subtitle")}
               </DialogDescription>
             </DialogHeader>
 
             <div className="space-y-4 py-4">
               <div className="space-y-2">
-                <Label htmlFor="name">World Name *</Label>
+                <Label htmlFor="name">{t("worlds.worldName")} *</Label>
                 <Input
                   id="name"
-                  placeholder="e.g., Coding Assistant, Creative Writer, Math Tutor"
+                  placeholder={t("worlds.worldNamePlaceholder")}
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   data-testid="input-world-name"
@@ -497,10 +499,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
+                <Label htmlFor="description">{t("worlds.description")}</Label>
                 <Textarea
                   id="description"
-                  placeholder="What makes this world unique?"
+                  placeholder={t("worlds.descriptionPlaceholder")}
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={2}
@@ -509,7 +511,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="model">AI Model</Label>
+                <Label htmlFor="model">{t("worlds.model")}</Label>
                 <Select
                   value={formData.model}
                   onValueChange={(value) => setFormData({ ...formData, model: value as any })}
@@ -531,7 +533,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="temperature">Temperature</Label>
+                  <Label htmlFor="temperature">{t("worlds.temperature")}</Label>
                   <span className="text-sm text-muted-foreground">{formData.temperature?.toFixed(1)}</span>
                 </div>
                 <Slider
@@ -544,13 +546,13 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                   data-testid="slider-world-temperature"
                 />
                 <p className="text-sm text-muted-foreground">
-                  Lower = more focused, Higher = more creative
+                  {t("settings.temperatureDescription")}
                 </p>
               </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="maxTokens">Max Response Length</Label>
+                  <Label htmlFor="maxTokens">{t("worlds.maxTokens")}</Label>
                   <span className="text-sm text-muted-foreground">{formData.maxTokens} tokens</span>
                 </div>
                 <Slider
@@ -565,7 +567,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="responseStyle">Response Style</Label>
+                <Label htmlFor="responseStyle">{t("worlds.responseStyle")}</Label>
                 <Select
                   value={formData.responseStyle}
                   onValueChange={(value) => setFormData({ ...formData, responseStyle: value as any })}
@@ -589,7 +591,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="conversationStyle">Conversation Style</Label>
+                <Label htmlFor="conversationStyle">{t("worlds.conversationStyle")}</Label>
                 <Select
                   value={formData.conversationStyle}
                   onValueChange={(value) => setFormData({ ...formData, conversationStyle: value as any })}
@@ -620,10 +622,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="customPersonality">Custom Personality / Instructions</Label>
+                <Label htmlFor="customPersonality">{t("worlds.customPersonality")}</Label>
                 <Textarea
                   id="customPersonality"
-                  placeholder="e.g., You are a helpful coding assistant who explains concepts with examples..."
+                  placeholder={t("worlds.customPersonalityPlaceholder")}
                   value={formData.customPersonality}
                   onChange={(e) => setFormData({ ...formData, customPersonality: e.target.value })}
                   rows={4}
@@ -636,10 +638,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="characters">Characters</Label>
+                <Label htmlFor="characters">{t("worlds.characters")}</Label>
                 <Textarea
                   id="characters"
-                  placeholder="Describe the characters in this world..."
+                  placeholder={t("worlds.charactersPlaceholder")}
                   value={formData.characters}
                   onChange={(e) => setFormData({ ...formData, characters: e.target.value })}
                   rows={3}
@@ -652,10 +654,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="events">Events</Label>
+                <Label htmlFor="events">{t("worlds.events")}</Label>
                 <Textarea
                   id="events"
-                  placeholder="Describe important events or timeline..."
+                  placeholder={t("worlds.eventsPlaceholder")}
                   value={formData.events}
                   onChange={(e) => setFormData({ ...formData, events: e.target.value })}
                   rows={3}
@@ -668,10 +670,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="scenario">Scenario</Label>
+                <Label htmlFor="scenario">{t("worlds.scenario")}</Label>
                 <Textarea
                   id="scenario"
-                  placeholder="Describe the scenario or context..."
+                  placeholder={t("worlds.scenarioPlaceholder")}
                   value={formData.scenario}
                   onChange={(e) => setFormData({ ...formData, scenario: e.target.value })}
                   rows={3}
@@ -684,10 +686,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="places">Places</Label>
+                <Label htmlFor="places">{t("worlds.places")}</Label>
                 <Textarea
                   id="places"
-                  placeholder="Describe locations and settings..."
+                  placeholder={t("worlds.placesPlaceholder")}
                   value={formData.places}
                   onChange={(e) => setFormData({ ...formData, places: e.target.value })}
                   rows={3}
@@ -700,10 +702,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="additionalSettings">Additional Settings</Label>
+                <Label htmlFor="additionalSettings">{t("worlds.additionalSettings")}</Label>
                 <Textarea
                   id="additionalSettings"
-                  placeholder="Any other settings or notes..."
+                  placeholder={t("worlds.additionalSettingsPlaceholder")}
                   value={formData.additionalSettings}
                   onChange={(e) => setFormData({ ...formData, additionalSettings: e.target.value })}
                   rows={3}
@@ -726,7 +728,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                 }}
                 data-testid="button-cancel-world"
               >
-                Cancel
+                {t("common.cancel")}
               </Button>
               <Button
                 onClick={editingWorld ? handleUpdate : handleCreate}
@@ -736,10 +738,10 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                 {(createMutation.isPending || updateMutation.isPending) ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Saving...
+                    {t("worlds.saving")}
                   </>
                 ) : (
-                  editingWorld ? "Update World" : "Create World"
+                  editingWorld ? t("common.save") : t("worlds.createWorld")
                 )}
               </Button>
             </DialogFooter>

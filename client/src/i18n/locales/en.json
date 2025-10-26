@@ -37,7 +37,15 @@
     "logoutSuccess": "You have been successfully logged out",
     "emailRequired": "Email is required",
     "passwordRequired": "Password must be at least 8 characters",
-    "nameRequired": "Name is required for signup"
+    "nameRequired": "Name is required for signup",
+    "profile": "Profile",
+    "account": "Account",
+    "accountDescription": "Manage your account and preferences",
+    "memberSince": "Member since",
+    "loginPrompt": "Enter your credentials to access your account",
+    "signupPrompt": "Create a new account to get started",
+    "toggleToSignup": "Don't have an account? Sign up",
+    "toggleToLogin": "Already have an account? Log in"
   },
   "chat": {
     "inputPlaceholder": "Type your message...",

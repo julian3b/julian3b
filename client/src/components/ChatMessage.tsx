@@ -1,5 +1,6 @@
 import { Bot, User, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 type Message = {
   id: string;
@@ -33,6 +34,7 @@ function formatTimestamp(date: Date): string {
 }
 
 export function ChatMessage({ message, worldId, userEmail, onDelete }: ChatMessageProps) {
+  const { t } = useTranslation();
   const isUser = message.role === "user";
   const time = formatTimestamp(message.timestamp);
   const canDelete = worldId && message.azureMessageId && onDelete;
@@ -40,7 +42,7 @@ export function ChatMessage({ message, worldId, userEmail, onDelete }: ChatMessa
   const handleDelete = async () => {
     if (!canDelete || !message.azureMessageId) return;
     
-    if (confirm("Are you sure you want to delete this message?")) {
+    if (confirm(t('chat.deleteConfirm'))) {
       await onDelete(message.azureMessageId);
     }
   };

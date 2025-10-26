@@ -1,6 +1,7 @@
 import { useState, useRef, KeyboardEvent } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "react-i18next";
 
 type ChatInputProps = {
   onSendMessage: (message: string) => void;
@@ -8,6 +9,7 @@ type ChatInputProps = {
 };
 
 export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
+  const { t } = useTranslation();
   const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -42,7 +44,7 @@ export function ChatInput({ onSendMessage, disabled = false }: ChatInputProps) {
           value={message}
           onChange={handleInput}
           onKeyDown={handleKeyDown}
-          placeholder="Type your message..."
+          placeholder={t('chat.inputPlaceholder')}
           disabled={disabled}
           data-testid="input-chat-message"
           className="w-full rounded-xl border-2 border-input bg-background px-4 py-3 pr-12 text-base resize-none focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:opacity-50 disabled:cursor-not-allowed min-h-[48px] max-h-[200px]"
