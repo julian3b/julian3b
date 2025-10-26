@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application designed to provide a modern, in
 
 ## Recent Changes
 
+- **October 26, 2025**: Added email verification to signup flow - new users receive verification code via email (sendcode action), enter 6-digit code in OTP input, system verifies code (verifycode action) before granting access; includes resend functionality with 60-second cooldown timer
 - **October 26, 2025**: Implemented full internationalization (i18n) - application now supports English and Spanish with automatic language detection based on browser locale; Spanish-speaking regions get Spanish by default, with manual language switcher in user settings
 - **October 26, 2025**: Fixed ChatInput send button positioning - button now properly displays inside the textarea on the right side instead of outside on the left
 - **October 25, 2025**: Fixed world summary date display - corrected backend to extract `slices` array from Azure response instead of `items`/`summaries`, properly displaying "Last Summary" dates in World Settings
@@ -54,6 +55,8 @@ Preferred communication style: Simple, everyday language.
 
 **API Endpoints:**
 - `/api/auth/login`, `/api/auth/signup`: Proxies to Azure Functions for authentication.
+- `/api/auth/sendcode`: Sends email verification code to user (action: 'sendcode', email: user email).
+- `/api/auth/verifycode`: Verifies email verification code (action: 'verifycode', email: user email, code: 6-digit code).
 - `/api/chat`: Proxies chat messages to Azure Functions, supporting global settings or world-specific overrides including detailed world context (characters, events, scenario, etc.).
 - `/api/chat/history`, `/api/chat/world-history`: Retrieves global and world-specific chat histories from Azure.
 - `/api/chat/world-message` (DELETE): Deletes individual messages from world chats.
