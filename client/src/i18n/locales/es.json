@@ -1,0 +1,143 @@
+{
+  "landing": {
+    "title": "Bienvenido a AI Chat",
+    "subtitle": "Tu compañero de conversación inteligente, impulsado por IA avanzada",
+    "features": {
+      "conversations": {
+        "title": "Conversaciones Inteligentes",
+        "description": "Participa en conversaciones naturales e inteligentes"
+      },
+      "security": {
+        "title": "Seguro y Privado",
+        "description": "Tus datos están protegidos y encriptados"
+      },
+      "speed": {
+        "title": "Respuestas Rápidas",
+        "description": "Obtén respuestas instantáneas y precisas"
+      }
+    },
+    "getStarted": "Comenzar",
+    "signupPrompt": "Regístrate o inicia sesión para comenzar a chatear"
+  },
+  "auth": {
+    "login": "Iniciar Sesión",
+    "signup": "Registrarse",
+    "email": "Correo Electrónico",
+    "password": "Contraseña",
+    "name": "Nombre",
+    "logout": "Cerrar Sesión",
+    "loginFailed": "Error de Inicio de Sesión",
+    "invalidCredentials": "Credenciales inválidas",
+    "welcomeBack": "¡Bienvenido de Nuevo!",
+    "loginSuccess": "Has iniciado sesión exitosamente",
+    "signupSuccess": "¡Cuenta creada exitosamente!",
+    "signupFailed": "Error de Registro",
+    "accountCreated": "Tu cuenta ha sido creada",
+    "loggedOut": "Sesión Cerrada",
+    "logoutSuccess": "Has cerrado sesión exitosamente",
+    "emailRequired": "El correo electrónico es obligatorio",
+    "passwordRequired": "La contraseña debe tener al menos 8 caracteres",
+    "nameRequired": "El nombre es obligatorio para registrarse"
+  },
+  "chat": {
+    "inputPlaceholder": "Escribe tu mensaje...",
+    "selectWorld": "Selecciona un mundo para aplicar su configuración",
+    "noWorlds": "No hay mundos disponibles",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este mensaje?",
+    "loadingHistory": "Cargando historial de chat...",
+    "errorLoadingHistory": "Error al cargar el historial de chat",
+    "useGlobalSettings": "Usar Configuración Global"
+  },
+  "worlds": {
+    "title": "Mundos",
+    "subtitle": "Crea contextos de chat separados con personalidades y configuraciones de IA únicas",
+    "createWorld": "Crear Mundo",
+    "editWorld": "Editar Mundo",
+    "deleteWorld": "Eliminar Mundo",
+    "summarize": "Resumir",
+    "noWorlds": "Aún no hay mundos",
+    "noWorldsDescription": "Crea tu primer mundo para comenzar con personalidades de IA personalizadas",
+    "lastSummary": "Último Resumen",
+    "never": "Nunca",
+    "worldName": "Nombre del Mundo",
+    "worldNamePlaceholder": "ej., Asistente de Código, Escritor Creativo, Tutor de Matemáticas",
+    "worldNameRequired": "El nombre del mundo es obligatorio",
+    "worldNameInvalid": "El nombre del mundo solo puede contener letras, números, guiones, guiones bajos y espacios",
+    "description": "Descripción",
+    "descriptionPlaceholder": "¿Qué hace único a este mundo?",
+    "model": "Modelo de IA",
+    "temperature": "Temperatura",
+    "maxTokens": "Tokens Máximos",
+    "responseStyle": "Estilo de Respuesta",
+    "conversationStyle": "Estilo de Conversación",
+    "customPersonality": "Personalidad Personalizada",
+    "customPersonalityPlaceholder": "Describe la personalidad y comportamiento de la IA...",
+    "characters": "Personajes",
+    "charactersPlaceholder": "Describe los personajes en este mundo... (máx. 5000 caracteres)",
+    "places": "Lugares",
+    "placesPlaceholder": "Describe los lugares en este mundo... (máx. 5000 caracteres)",
+    "events": "Eventos",
+    "eventsPlaceholder": "Describe eventos importantes en este mundo... (máx. 5000 caracteres)",
+    "scenario": "Escenario",
+    "scenarioPlaceholder": "Describe el escenario o ambiente general... (máx. 5000 caracteres)",
+    "additionalSettings": "Configuraciones Adicionales",
+    "additionalSettingsPlaceholder": "Cualquier otra configuración o instrucción personalizada... (máx. 5000 caracteres)",
+    "createSuccess": "¡Mundo creado exitosamente!",
+    "updateSuccess": "¡Mundo actualizado exitosamente!",
+    "deleteSuccess": "¡Mundo eliminado exitosamente!",
+    "deleteConfirm": "¿Estás seguro de que quieres eliminar este mundo?",
+    "summarySuccess": "¡Resumen creado exitosamente!",
+    "summaryError": "Error al crear resumen",
+    "saving": "Guardando...",
+    "edit": "Editar",
+    "responseStyles": {
+      "concise": "Conciso - Respuestas breves y directas",
+      "balanced": "Equilibrado - Detalle y longitud moderados",
+      "detailed": "Detallado - Respuestas completas y profundas",
+      "narrative": "Narrativo - Estilo descriptivo como una historia",
+      "actionPacked": "Lleno de Acción - Tono dinámico y emocionante"
+    },
+    "conversationStyles": {
+      "professional": "Profesional - Formal y empresarial",
+      "friendly": "Amigable - Cálido y accesible",
+      "casual": "Casual - Relajado e informal",
+      "humorous": "Humorístico - Ingenioso y divertido",
+      "edgy": "Atrevido - Audaz y provocativo"
+    }
+  },
+  "settings": {
+    "title": "Configuración",
+    "aiCustomization": "Personalización de IA",
+    "selectModel": "Seleccionar Modelo de IA",
+    "temperature": "Temperatura",
+    "temperatureDescription": "Controla la aleatoriedad (0 = enfocado, 2 = creativo)",
+    "maxTokens": "Tokens Máximos",
+    "maxTokensDescription": "Longitud máxima de respuesta",
+    "responseStyle": "Estilo de Respuesta",
+    "conversationStyle": "Estilo de Conversación",
+    "customPersonality": "Personalidad Personalizada",
+    "customPersonalityPlaceholder": "Describe cómo quieres que se comporte la IA...",
+    "saveSettings": "Guardar Configuración",
+    "settingsSaved": "¡Configuración guardada exitosamente!",
+    "settingsError": "Error al guardar configuración",
+    "language": "Idioma",
+    "selectLanguage": "Seleccionar Idioma"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "create": "Crear",
+    "update": "Actualizar",
+    "confirm": "Confirmar",
+    "close": "Cerrar"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Español"
+  }
+}

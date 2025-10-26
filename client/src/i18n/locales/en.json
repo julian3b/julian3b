@@ -1,0 +1,143 @@
+{
+  "landing": {
+    "title": "Welcome to AI Chat",
+    "subtitle": "Your intelligent conversation partner, powered by advanced AI",
+    "features": {
+      "conversations": {
+        "title": "Smart Conversations",
+        "description": "Engage in natural, intelligent conversations"
+      },
+      "security": {
+        "title": "Secure & Private",
+        "description": "Your data is protected and encrypted"
+      },
+      "speed": {
+        "title": "Fast Responses",
+        "description": "Get instant, accurate answers"
+      }
+    },
+    "getStarted": "Get Started",
+    "signupPrompt": "Sign up or log in to start chatting"
+  },
+  "auth": {
+    "login": "Login",
+    "signup": "Sign Up",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "logout": "Logout",
+    "loginFailed": "Login Failed",
+    "invalidCredentials": "Invalid credentials",
+    "welcomeBack": "Welcome Back!",
+    "loginSuccess": "You have successfully logged in",
+    "signupSuccess": "Account created successfully!",
+    "signupFailed": "Signup Failed",
+    "accountCreated": "Your account has been created",
+    "loggedOut": "Logged Out",
+    "logoutSuccess": "You have been successfully logged out",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password must be at least 8 characters",
+    "nameRequired": "Name is required for signup"
+  },
+  "chat": {
+    "inputPlaceholder": "Type your message...",
+    "selectWorld": "Select a world to apply its settings",
+    "noWorlds": "No worlds available",
+    "deleteConfirm": "Are you sure you want to delete this message?",
+    "loadingHistory": "Loading chat history...",
+    "errorLoadingHistory": "Error loading chat history",
+    "useGlobalSettings": "Use Global Settings"
+  },
+  "worlds": {
+    "title": "Worlds",
+    "subtitle": "Create separate chat contexts with unique AI personalities and settings",
+    "createWorld": "Create World",
+    "editWorld": "Edit World",
+    "deleteWorld": "Delete World",
+    "summarize": "Summarize",
+    "noWorlds": "No worlds yet",
+    "noWorldsDescription": "Create your first world to get started with custom AI personalities",
+    "lastSummary": "Last Summary",
+    "never": "Never",
+    "worldName": "World Name",
+    "worldNamePlaceholder": "e.g., Coding Assistant, Creative Writer, Math Tutor",
+    "worldNameRequired": "World name is required",
+    "worldNameInvalid": "World name can only contain letters, numbers, dashes, underscores, and spaces",
+    "description": "Description",
+    "descriptionPlaceholder": "What makes this world unique?",
+    "model": "AI Model",
+    "temperature": "Temperature",
+    "maxTokens": "Max Tokens",
+    "responseStyle": "Response Style",
+    "conversationStyle": "Conversation Style",
+    "customPersonality": "Custom Personality",
+    "customPersonalityPlaceholder": "Describe the AI's personality and behavior...",
+    "characters": "Characters",
+    "charactersPlaceholder": "Describe the characters in this world... (max 5000 characters)",
+    "places": "Places",
+    "placesPlaceholder": "Describe the locations in this world... (max 5000 characters)",
+    "events": "Events",
+    "eventsPlaceholder": "Describe important events in this world... (max 5000 characters)",
+    "scenario": "Scenario",
+    "scenarioPlaceholder": "Describe the overall scenario or setting... (max 5000 characters)",
+    "additionalSettings": "Additional Settings",
+    "additionalSettingsPlaceholder": "Any other custom settings or instructions... (max 5000 characters)",
+    "createSuccess": "World created successfully!",
+    "updateSuccess": "World updated successfully!",
+    "deleteSuccess": "World deleted successfully!",
+    "deleteConfirm": "Are you sure you want to delete this world?",
+    "summarySuccess": "Summary created successfully!",
+    "summaryError": "Failed to create summary",
+    "saving": "Saving...",
+    "edit": "Edit",
+    "responseStyles": {
+      "concise": "Concise - Brief, to-the-point responses",
+      "balanced": "Balanced - Moderate detail and length",
+      "detailed": "Detailed - Comprehensive, in-depth answers",
+      "narrative": "Narrative - Story-like, descriptive style",
+      "actionPacked": "Action-Packed - Dynamic, exciting tone"
+    },
+    "conversationStyles": {
+      "professional": "Professional - Formal and business-like",
+      "friendly": "Friendly - Warm and approachable",
+      "casual": "Casual - Relaxed and informal",
+      "humorous": "Humorous - Witty and fun",
+      "edgy": "Edgy - Bold and provocative"
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "aiCustomization": "AI Customization",
+    "selectModel": "Select AI Model",
+    "temperature": "Temperature",
+    "temperatureDescription": "Controls randomness (0 = focused, 2 = creative)",
+    "maxTokens": "Max Tokens",
+    "maxTokensDescription": "Maximum response length",
+    "responseStyle": "Response Style",
+    "conversationStyle": "Conversation Style",
+    "customPersonality": "Custom Personality",
+    "customPersonalityPlaceholder": "Describe how you want the AI to behave...",
+    "saveSettings": "Save Settings",
+    "settingsSaved": "Settings saved successfully!",
+    "settingsError": "Failed to save settings",
+    "language": "Language",
+    "selectLanguage": "Select Language"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "confirm": "Confirm",
+    "close": "Close"
+  },
+  "languages": {
+    "en": "English",
+    "es": "Español"
+  }
+}
