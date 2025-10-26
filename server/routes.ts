@@ -277,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const azurePayload = {
         action: 'verifycode',
         email: email,
-        code: code
+        codeverify: code
       };
       console.log(`[VERIFYCODE] 📤 SENDING TO AZURE:`, JSON.stringify(azurePayload));
       
