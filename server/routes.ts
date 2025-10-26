@@ -169,6 +169,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send verification code endpoint
+  app.post("/api/auth/sendcode", async (req, res) => {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({ ok: false, error: "Email is required" });
+      }
+
+      const azureFunctionUrl = process.env.AZURE_AUTH_URL;
+      
+      if (!azureFunctionUrl) {
+        return res.status(500).json({ 
+          ok: false, 
+          error: "AZURE_AUTH_URL not configured. Please set a dedicated authentication endpoint in your environment secrets." 
+        });
+      }
+
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const params = new URLSearchParams({
+        ...(azureFunctionKey && { code: azureFunctionKey })
+      });
+
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log(`[SENDCODE] Sending verification code (email not logged for security)`);
+      
+      const response = await fetch(fullUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
+        },
+        body: JSON.stringify({
+          action: 'sendcode',
+          email: email
+        })
+      });
+
+      console.log(`[SENDCODE] Azure Function responded with status: ${response.status}`);
+      
+      if (!response.ok) {
+        return res.status(response.status).json({ 
+          ok: false, 
+          error: `Azure Function returned ${response.status}: ${response.statusText}` 
+        });
+      }
+
+      const text = await response.text();
+      if (!text) {
+        console.log('[SENDCODE] Empty response from Azure Function');
+        return res.status(500).json({ 
+          ok: false, 
+          error: 'Azure Function returned empty response' 
+        });
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+        console.log(`[SENDCODE] Verification code ${data.ok ? 'sent successfully' : 'send failed'}`);
+      } catch (parseError) {
+        console.error('[SENDCODE] Failed to parse Azure Function response');
+        return res.status(500).json({ 
+          ok: false, 
+          error: 'Azure Function returned invalid JSON' 
+        });
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Send code error:', error);
+      res.status(500).json({ ok: false, error: 'Failed to send verification code. Please try again.' });
+    }
+  });
+
+  // Verify code endpoint
+  app.post("/api/auth/verifycode", async (req, res) => {
+    try {
+      const { email, code } = req.body;
+
+      if (!email || !code) {
+        return res.status(400).json({ ok: false, error: "Email and code are required" });
+      }
+
+      const azureFunctionUrl = process.env.AZURE_AUTH_URL;
+      
+      if (!azureFunctionUrl) {
+        return res.status(500).json({ 
+          ok: false, 
+          error: "AZURE_AUTH_URL not configured. Please set a dedicated authentication endpoint in your environment secrets." 
+        });
+      }
+
+      const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
+
+      const params = new URLSearchParams({
+        ...(azureFunctionKey && { code: azureFunctionKey })
+      });
+
+      const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
+      console.log(`[VERIFYCODE] Verifying code (email and code not logged for security)`);
+      
+      const response = await fetch(fullUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(azureFunctionKey && { 'x-functions-key': azureFunctionKey }),
+        },
+        body: JSON.stringify({
+          action: 'verifycode',
+          email: email,
+          code: code
+        })
+      });
+
+      console.log(`[VERIFYCODE] Azure Function responded with status: ${response.status}`);
+      
+      if (!response.ok) {
+        return res.status(response.status).json({ 
+          ok: false, 
+          error: `Azure Function returned ${response.status}: ${response.statusText}` 
+        });
+      }
+
+      const text = await response.text();
+      if (!text) {
+        console.log('[VERIFYCODE] Empty response from Azure Function');
+        return res.status(500).json({ 
+          ok: false, 
+          error: 'Azure Function returned empty response' 
+        });
+      }
+
+      let data;
+      try {
+        data = JSON.parse(text);
+        console.log(`[VERIFYCODE] Code verification ${data.ok ? 'successful' : 'failed'}`);
+      } catch (parseError) {
+        console.error('[VERIFYCODE] Failed to parse Azure Function response');
+        return res.status(500).json({ 
+          ok: false, 
+          error: 'Azure Function returned invalid JSON' 
+        });
+      }
+
+      res.json(data);
+    } catch (error) {
+      console.error('Verify code error:', error);
+      res.status(500).json({ ok: false, error: 'Failed to verify code. Please try again.' });
+    }
+  });
+
   // Chat history endpoint - fetches user's chat history
   app.post("/api/chat/history", async (req, res) => {
     try {
