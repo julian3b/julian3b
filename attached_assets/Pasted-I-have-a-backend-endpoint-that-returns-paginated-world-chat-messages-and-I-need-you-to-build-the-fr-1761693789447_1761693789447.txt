@@ -1,0 +1,140 @@
+I have a backend endpoint that returns paginated world chat messages, and I need you to build the frontend logic to display them and automatically load older messages when the user scrolls to the top. Here is exactly how the backend works and what I need from you:
+
+I call this endpoint:
+/api/echo?action=getworldchats&worldId={WORLD_ID}&take={PAGE_SIZE}&continuationToken={TOKEN?}
+
+worldId is required.
+
+take is how many messages per page (for example 10).
+
+continuationToken is OPTIONAL. I do NOT send it on the first request. I DO send it for older pages.
+
+The server responds with JSON shaped like this:
+{
+"ok": true,
+"worldId": "abc123",
+"count": 10,
+"order": "asc",
+"continuationToken": "SOME_TOKEN_OR_NULL",
+"items": [
+{
+"id": "msg-id",
+"worldId": "abc123",
+"arcId": "...",
+"sceneId": "...",
+"input": "user text here",
+"aiReply": "ai reply here",
+"createdUtc": "2025-10-28T20:13:09.334Z",
+"worldSettings": null
+},
+...
+]
+}
+
+IMPORTANT:
+
+items is ALWAYS sorted from oldest → newest within that chunk.
+
+The first time I call without a continuationToken, the server gives me the NEWEST chunk of messages in the world (the latest PAGE_SIZE messages), but still sorted oldest → newest.
+
+The continuationToken in the response is what I should pass to the server next time to get the PREVIOUS chunk of older messages.
+
+That means:
+
+First load returns the newest page.
+
+Then I pass the continuationToken to load OLDER history.
+
+Each subsequent call gets older and older messages.
+
+If continuationToken in the response is null, I'm at the beginning of history and there is nothing older.
+
+I need you to build a simple chat viewer that:
+
+Keeps an array of messages in memory, always sorted oldest → newest.
+
+On first load, fetches the newest page (no continuationToken), stores those messages, and renders them.
+
+Tracks the continuationToken from the response in a variable like olderToken.
+
+When I scroll to the TOP of the chat container (e.g. scrollTop === 0), it should:
+
+If olderToken is not null, fetch again using that olderToken.
+
+Prepend the newly returned older messages to the top of my existing array.
+
+Update olderToken to the new continuationToken from that response.
+
+Keep the scroll position stable so the viewport doesn't jump.
+
+Please implement:
+
+An HTML container (or React component if you want) with a scrollable div.
+
+JS code that:
+
+loadInitialPage(): calls the endpoint with no continuationToken.
+
+loadOlderPage(): calls the endpoint with continuationToken and prepends the results.
+
+Attaches an onscroll handler that checks if we’re at the top, and if yes, calls loadOlderPage().
+
+The messages should render in timestamp order (oldest at the top, newest at the bottom). DO NOT reverse them in the UI.
+
+Important details you MUST respect in the code:
+
+The olderToken variable should always be updated to the continuationToken from the most recent fetch.
+
+Stop requesting when olderToken is null.
+
+Do NOT wipe the messages array when loading older messages; instead prepend the new ones before the existing ones.
+
+After prepending older messages, adjust scrollTop so the visible messages don’t jump. You can do this by:
+
+Record oldScrollHeight and oldScrollTop before inserting.
+
+After inserting and rerendering, set scrollTop = newScrollHeight - oldScrollHeight + oldScrollTop.
+
+Assume these variables exist / should exist:
+
+const API_BASE = "/api/echo";
+
+const WORLD_ID = "abc123";
+
+const PAGE_SIZE = 10;
+
+State:
+
+let messages = []; // all loaded so far, oldest→newest
+
+let olderToken = null; // continuationToken from server
+
+let reachedBeginning = false; // set true if olderToken is null
+
+let isLoading = false;
+
+Elements:
+
+const scrollEl = document.getElementById("messages-wrapper");
+
+Each message should show:
+
+timestamp (createdUtc)
+
+input text
+
+aiReply text
+
+I expect you to generate:
+
+The HTML structure
+
+The CSS for a basic chat look
+
+The JavaScript logic described above (loadInitialPage, loadOlderPage, scroll listener)
+
+VERY IMPORTANT:
+
+On first render, after loadInitialPage() finishes, scroll to the BOTTOM of the container so I see the newest message.
+
+On subsequent scroll-up loads, DO NOT scroll to bottom; keep scroll anchored where it was.

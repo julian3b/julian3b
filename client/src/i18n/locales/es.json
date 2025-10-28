@@ -72,6 +72,7 @@
     "noWorlds": "No hay mundos disponibles",
     "deleteConfirm": "¿Estás seguro de que quieres eliminar este mensaje?",
     "loadingHistory": "Cargando historial de chat...",
+    "loadingMore": "Cargando mensajes anteriores...",
     "errorLoadingHistory": "Error al cargar el historial de chat",
     "useGlobalSettings": "Usar Configuración Global",
     "welcomeTo": "Bienvenido a",

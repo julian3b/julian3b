@@ -41,6 +41,13 @@ export function ChatInterface({
   const [isLoading, setIsLoading] = useState(false);
   const [selectedWorldId, setSelectedWorldId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  
+  // Pagination state for infinite scroll
+  const [continuationToken, setContinuationToken] = useState<string | null>(null);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMoreMessages, setHasMoreMessages] = useState(true);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   // Only fetch worlds if this is the main chat (not a dedicated world chat)
   const { data: worldsData } = useQuery<{ ok: boolean; worlds: World[] }>({
@@ -63,13 +70,86 @@ export function ChatInterface({
   // Determine the active world ID (either from preset world prop or selected dropdown)
   const activeWorldId = world?.id || selectedWorldId;
 
-  // Load world-specific chat history when a world is active (either dedicated tab or dropdown selection)
-  const { data: worldHistoryData, isLoading: isLoadingWorldHistory, refetch: refetchWorldHistory } = useQuery({
-    queryKey: ["/api/chat/world-history", activeWorldId, userEmail],
-    queryFn: async () => {
-      if (!userEmail || !activeWorldId) {
-        throw new Error("User email and world ID required");
+  // Function to load initial world chat history (newest 10 messages)
+  const loadInitialWorldHistory = async (worldId: string) => {
+    if (!userEmail || !worldId) return;
+    
+    try {
+      setIsInitialLoad(true);
+      const response = await fetch("/api/chat/world-history", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: userEmail,
+          worldId: worldId,
+          take: 10, // Load 10 messages at a time
+        }),
+      });
+      
+      if (!response.ok) throw new Error("Failed to fetch world history");
+      
+      const data = await response.json();
+      
+      // Convert Azure items to messages
+      const historyMessages: Message[] = [];
+      if (data.items) {
+        data.items.forEach((item: any, index: number) => {
+          if (item.input) {
+            historyMessages.push({
+              id: `history-user-${item.id || index}`,
+              role: "user",
+              content: item.input,
+              timestamp: new Date(item.createdUtc || Date.now()),
+              azureMessageId: item.id,
+            });
+          }
+          if (item.aiReply) {
+            historyMessages.push({
+              id: `history-ai-${item.id || index}`,
+              role: "assistant",
+              content: item.aiReply,
+              timestamp: new Date(item.createdUtc || Date.now()),
+              azureMessageId: item.id,
+            });
+          }
+        });
       }
+      
+      setMessages(historyMessages);
+      setContinuationToken(data.continuationToken || null);
+      setHasMoreMessages(!!data.continuationToken);
+      
+      console.log(`[WORLD-HISTORY] Loaded ${historyMessages.length} initial messages, has more: ${!!data.continuationToken}`);
+      
+      // Scroll to bottom on initial load
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
+      }, 100);
+    } catch (error) {
+      console.error("Error loading initial world history:", error);
+    } finally {
+      setIsInitialLoad(false);
+    }
+  };
+
+  // Function to load older messages (when scrolling to top)
+  const loadOlderMessages = async () => {
+    if (!activeWorldId || !userEmail || !continuationToken || isLoadingMore || !hasMoreMessages) {
+      return;
+    }
+    
+    try {
+      setIsLoadingMore(true);
+      
+      // Save scroll position before loading
+      const container = messagesContainerRef.current;
+      if (!container) return;
+      
+      const oldScrollHeight = container.scrollHeight;
+      const oldScrollTop = container.scrollTop;
+      
       const response = await fetch("/api/chat/world-history", {
         method: "POST",
         headers: {
@@ -78,55 +158,67 @@ export function ChatInterface({
         body: JSON.stringify({
           email: userEmail,
           worldId: activeWorldId,
+          take: 10,
+          continuationToken: continuationToken,
         }),
       });
-      if (!response.ok) throw new Error("Failed to fetch world history");
-      return response.json();
-    },
-    enabled: !!activeWorldId && !!userEmail, // Fetch if any world is active (dedicated tab or dropdown)
-    refetchOnMount: 'always', // Always refetch when component mounts
-    staleTime: 0, // Data is immediately stale, ensuring fresh fetches
-  });
+      
+      if (!response.ok) throw new Error("Failed to fetch older messages");
+      
+      const data = await response.json();
+      
+      // Convert Azure items to messages
+      const olderMessages: Message[] = [];
+      if (data.items) {
+        data.items.forEach((item: any, index: number) => {
+          if (item.input) {
+            olderMessages.push({
+              id: `history-user-${item.id || index}`,
+              role: "user",
+              content: item.input,
+              timestamp: new Date(item.createdUtc || Date.now()),
+              azureMessageId: item.id,
+            });
+          }
+          if (item.aiReply) {
+            olderMessages.push({
+              id: `history-ai-${item.id || index}`,
+              role: "assistant",
+              content: item.aiReply,
+              timestamp: new Date(item.createdUtc || Date.now()),
+              azureMessageId: item.id,
+            });
+          }
+        });
+      }
+      
+      // Prepend older messages to the beginning
+      setMessages((prev) => [...olderMessages, ...prev]);
+      setContinuationToken(data.continuationToken || null);
+      setHasMoreMessages(!!data.continuationToken);
+      
+      console.log(`[WORLD-HISTORY] Loaded ${olderMessages.length} older messages, has more: ${!!data.continuationToken}`);
+      
+      // Restore scroll position after prepending
+      setTimeout(() => {
+        if (container) {
+          const newScrollHeight = container.scrollHeight;
+          container.scrollTop = newScrollHeight - oldScrollHeight + oldScrollTop;
+        }
+      }, 0);
+    } catch (error) {
+      console.error("Error loading older messages:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
-  // Force refetch when activeWorldId changes (switching between worlds)
+  // Load initial history when world changes
   useEffect(() => {
     if (activeWorldId && userEmail) {
-      refetchWorldHistory();
+      loadInitialWorldHistory(activeWorldId);
     }
-  }, [activeWorldId]);
-
-  // Update messages when world history is loaded (for both dedicated world tabs and dropdown selection)
-  useEffect(() => {
-    if (activeWorldId && worldHistoryData?.items) {
-      // Azure Function already sorts messages correctly - display them as received
-      // Each item has both input (user) and aiReply (assistant), so we need to create 2 messages per item
-      const historyMessages: Message[] = [];
-      worldHistoryData.items.forEach((item: any, index: number) => {
-        // Add user message
-        if (item.input) {
-          historyMessages.push({
-            id: `history-user-${item.id || index}`,
-            role: "user",
-            content: item.input,
-            timestamp: new Date(item.createdUtc || Date.now()),
-            azureMessageId: item.id, // Store Azure row key for deletion
-          });
-        }
-        // Add AI reply
-        if (item.aiReply) {
-          historyMessages.push({
-            id: `history-ai-${item.id || index}`,
-            role: "assistant",
-            content: item.aiReply,
-            timestamp: new Date(item.createdUtc || Date.now()),
-            azureMessageId: item.id, // Store Azure row key for deletion
-          });
-        }
-      });
-      setMessages(historyMessages);
-      console.log(`Loaded ${historyMessages.length} world history items for world ${activeWorldId}`);
-    }
-  }, [activeWorldId, worldHistoryData]);
+  }, [activeWorldId, userEmail]);
 
   // Update messages when switching back to default/global chat (no world selected)
   useEffect(() => {
@@ -135,13 +227,33 @@ export function ChatInterface({
     }
   }, [world, selectedWorldId, initialMessages]);
 
+  // Scroll listener to detect when user scrolls to top
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container || !activeWorldId) return;
+
+    const handleScroll = () => {
+      // If scrolled near the top (within 50px) and has more messages to load
+      if (container.scrollTop < 50 && hasMoreMessages && !isLoadingMore) {
+        console.log('[SCROLL] Near top, loading older messages...');
+        loadOlderMessages();
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [activeWorldId, hasMoreMessages, isLoadingMore, continuationToken]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Only auto-scroll on new messages, not when loading older ones
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (!isLoadingMore && !isInitialLoad) {
+      scrollToBottom();
+    }
+  }, [messages.length]);
 
   const handleSend = async (content: string) => {
     const userMessage: Message = {
@@ -184,9 +296,9 @@ export function ChatInterface({
       };
       setMessages((prev) => [...prev, aiMessage]);
       
-      // Refetch world history after sending message to get latest from Azure
+      // Reload initial world history after sending message to get latest from Azure
       if (activeWorldId && userEmail) {
-        setTimeout(() => refetchWorldHistory(), 500); // Small delay to allow Azure to process
+        setTimeout(() => loadInitialWorldHistory(activeWorldId), 500); // Small delay to allow Azure to process
       }
     } catch (error) {
       console.error("Error sending message:", error);
@@ -235,9 +347,16 @@ export function ChatInterface({
         </div>
       )}
       
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" ref={messagesContainerRef}>
         <div className="max-w-4xl mx-auto p-6 space-y-6">
-          {isLoadingWorldHistory && (
+          {isLoadingMore && (
+            <div className="flex items-center justify-center py-4">
+              <Loader2 className="w-5 h-5 text-primary animate-spin mr-2" />
+              <span className="text-sm text-muted-foreground">{t('chat.loadingMore')}</span>
+            </div>
+          )}
+          
+          {isInitialLoad && (
             <div className="flex items-center justify-center h-[400px]">
               <div className="text-center">
                 <Loader2 className="w-8 h-8 text-primary animate-spin mx-auto mb-4" />
@@ -246,7 +365,7 @@ export function ChatInterface({
             </div>
           )}
           
-          {!isLoadingWorldHistory && messages.length === 0 && (
+          {!isInitialLoad && messages.length === 0 && (
             <div className="flex items-center justify-center h-[400px]">
               <div className="text-center">
                 <h3 className="text-lg font-semibold text-foreground mb-2">
@@ -279,9 +398,9 @@ export function ChatInterface({
                       messageId: messageId,
                     }),
                   });
-                  if (response.ok) {
-                    // Refetch world history to update the UI
-                    refetchWorldHistory();
+                  if (response.ok && activeWorldId) {
+                    // Reload world history to update the UI
+                    loadInitialWorldHistory(activeWorldId);
                   }
                 } catch (error) {
                   console.error("Error deleting message:", error);

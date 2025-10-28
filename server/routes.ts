@@ -390,10 +390,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // World-specific chat history endpoint
+  // World-specific chat history endpoint with pagination support
   app.post("/api/chat/world-history", async (req, res) => {
     try {
-      const { email, worldId } = req.body;
+      const { email, worldId, take, continuationToken } = req.body;
 
       if (!email || !worldId) {
         return res.status(400).json({ error: "Email and worldId are required" });
@@ -409,7 +409,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
-      console.log("[WORLD-HISTORY] Fetching world chat history (email and worldId not logged)");
+      
+      const pageSize = take || 10; // Default to 10 messages per page
+      console.log(`[WORLD-HISTORY] Fetching world chat history (email and worldId not logged) - page size: ${pageSize}, has token: ${!!continuationToken}`);
+
+      const requestBody: any = {
+        action: "getworldchats",
+        email: email,
+        worldid: worldId,
+        take: pageSize
+      };
+
+      // Only include continuationToken if it's provided (not on first load)
+      if (continuationToken) {
+        requestBody.continuationToken = continuationToken;
+      }
 
       const response = await fetch(fullUrl, {
         method: "POST",
@@ -417,11 +431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'Content-Type': 'application/json',
           ...(azureFunctionKey && { "x-functions-key": azureFunctionKey }),
         },
-        body: JSON.stringify({
-          action: "getworldchats",
-          email: email,
-          worldid: worldId
-        })
+        body: JSON.stringify(requestBody)
       });
 
       console.log("[WORLD-HISTORY] Azure Function responded with status:", response.status);
