@@ -242,8 +242,9 @@ export function ChatInterface({
     }
 
     const handleScroll = () => {
-      // Only trigger if scrolled near the top (within 100px) and has more messages
-      if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMore) {
+      // Only trigger if scrolled near the top (within 200px) and has more messages
+      if (container.scrollTop < 200 && hasMoreMessages && !isLoadingMore) {
+        console.log('[SCROLL-TRIGGER] Loading older messages...', { scrollTop: container.scrollTop });
         loadOlderMessages();
       }
     };
@@ -360,6 +361,14 @@ export function ChatInterface({
       
       <div className="flex-1 overflow-y-auto" ref={messagesContainerRef}>
         <div className="max-w-4xl mx-auto p-6 space-y-6">
+          {hasMoreMessages && !isLoadingMore && !isInitialLoad && activeWorldId && (
+            <div className="flex items-center justify-center py-2">
+              <div className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">
+                ↑ Scroll up to load older messages
+              </div>
+            </div>
+          )}
+          
           {isLoadingMore && (
             <div className="flex items-center justify-center py-4">
               <Loader2 className="w-5 h-5 text-primary animate-spin mr-2" />
