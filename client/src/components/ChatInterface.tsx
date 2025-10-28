@@ -96,9 +96,10 @@ export function ChatInterface({
       const historyMessages: Message[] = [];
       if (data.items) {
         data.items.forEach((item: any, index: number) => {
+          const uniqueId = item.id || `${Date.now()}-${index}`;
           if (item.input) {
             historyMessages.push({
-              id: `history-user-${item.id || index}`,
+              id: `user-${uniqueId}`,
               role: "user",
               content: item.input,
               timestamp: new Date(item.createdUtc || Date.now()),
@@ -107,7 +108,7 @@ export function ChatInterface({
           }
           if (item.aiReply) {
             historyMessages.push({
-              id: `history-ai-${item.id || index}`,
+              id: `ai-${uniqueId}`,
               role: "assistant",
               content: item.aiReply,
               timestamp: new Date(item.createdUtc || Date.now()),
@@ -171,9 +172,10 @@ export function ChatInterface({
       const olderMessages: Message[] = [];
       if (data.items) {
         data.items.forEach((item: any, index: number) => {
+          const uniqueId = item.id || `${Date.now()}-${index}`;
           if (item.input) {
             olderMessages.push({
-              id: `history-user-${item.id || index}`,
+              id: `user-${uniqueId}`,
               role: "user",
               content: item.input,
               timestamp: new Date(item.createdUtc || Date.now()),
@@ -182,7 +184,7 @@ export function ChatInterface({
           }
           if (item.aiReply) {
             olderMessages.push({
-              id: `history-ai-${item.id || index}`,
+              id: `ai-${uniqueId}`,
               role: "assistant",
               content: item.aiReply,
               timestamp: new Date(item.createdUtc || Date.now()),
@@ -230,11 +232,11 @@ export function ChatInterface({
   // Scroll listener to detect when user scrolls to top
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (!container || !activeWorldId) return;
+    if (!container || !activeWorldId || isInitialLoad) return;
 
     const handleScroll = () => {
-      // If scrolled near the top (within 50px) and has more messages to load
-      if (container.scrollTop < 50 && hasMoreMessages && !isLoadingMore) {
+      // Only trigger if scrolled near the top (within 100px) and has more messages
+      if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMore) {
         console.log('[SCROLL] Near top, loading older messages...');
         loadOlderMessages();
       }
@@ -242,7 +244,7 @@ export function ChatInterface({
 
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [activeWorldId, hasMoreMessages, isLoadingMore, continuationToken]);
+  }, [activeWorldId, hasMoreMessages, isLoadingMore, continuationToken, isInitialLoad]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
