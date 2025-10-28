@@ -232,17 +232,19 @@ export function ChatInterface({
   // Scroll listener to detect when user scrolls to top
   useEffect(() => {
     const container = messagesContainerRef.current;
-    if (!container || !activeWorldId || isInitialLoad) return;
+    
+    if (!container || !activeWorldId || isInitialLoad) {
+      return;
+    }
 
     const handleScroll = () => {
       // Only trigger if scrolled near the top (within 100px) and has more messages
       if (container.scrollTop < 100 && hasMoreMessages && !isLoadingMore) {
-        console.log('[SCROLL] Near top, loading older messages...');
         loadOlderMessages();
       }
     };
 
-    container.addEventListener('scroll', handleScroll);
+    container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
   }, [activeWorldId, hasMoreMessages, isLoadingMore, continuationToken, isInitialLoad]);
 
