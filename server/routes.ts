@@ -425,6 +425,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestBody.continuationToken = continuationToken;
       }
 
+      console.log("[WORLD-HISTORY] 📤 REQUEST BODY SENT TO AZURE:", JSON.stringify(requestBody, null, 2));
+
       const response = await fetch(fullUrl, {
         method: "POST",
         headers: {
