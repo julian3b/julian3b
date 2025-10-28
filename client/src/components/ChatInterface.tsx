@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
@@ -136,7 +136,7 @@ export function ChatInterface({
   };
 
   // Function to load older messages (when scrolling to top)
-  const loadOlderMessages = async () => {
+  const loadOlderMessages = useCallback(async () => {
     if (!activeWorldId || !userEmail || !continuationToken || isLoadingMore || !hasMoreMessages) {
       return;
     }
@@ -194,8 +194,12 @@ export function ChatInterface({
         });
       }
       
-      // Prepend older messages to the beginning
-      setMessages((prev) => [...olderMessages, ...prev]);
+      // Prepend older messages to the beginning, filtering out duplicates
+      setMessages((prev) => {
+        const existingIds = new Set(prev.map(m => m.azureMessageId));
+        const newMessages = olderMessages.filter(m => !existingIds.has(m.azureMessageId));
+        return [...newMessages, ...prev];
+      });
       setContinuationToken(data.continuationToken || null);
       setHasMoreMessages(!!data.continuationToken);
       
@@ -213,7 +217,7 @@ export function ChatInterface({
     } finally {
       setIsLoadingMore(false);
     }
-  };
+  }, [activeWorldId, userEmail, continuationToken, isLoadingMore, hasMoreMessages]);
 
   // Load initial history when world changes
   useEffect(() => {
@@ -246,18 +250,21 @@ export function ChatInterface({
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [activeWorldId, hasMoreMessages, isLoadingMore, continuationToken, isInitialLoad]);
+  }, [activeWorldId, isInitialLoad, hasMoreMessages, isLoadingMore, loadOlderMessages]);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  const scrollToBottom = (behavior: "smooth" | "auto" = "smooth") => {
+    messagesEndRef.current?.scrollIntoView({ behavior });
   };
 
-  // Only auto-scroll on new messages, not when loading older ones
+  // Auto-scroll to bottom when switching worlds or sending new messages
   useEffect(() => {
-    if (!isLoadingMore && !isInitialLoad) {
-      scrollToBottom();
+    if (!isLoadingMore && messages.length > 0) {
+      // Scroll to bottom when world changes (initial load complete)
+      if (!isInitialLoad && activeWorldId) {
+        scrollToBottom("auto");
+      }
     }
-  }, [messages.length]);
+  }, [activeWorldId]); // Only trigger when switching worlds
 
   const handleSend = async (content: string) => {
     const userMessage: Message = {
