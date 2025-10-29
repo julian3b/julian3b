@@ -410,18 +410,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
       
-      console.log(`[WORLD-HISTORY] Fetching world chat history (email and worldId not logged) - has token: ${!!continuationToken}`);
+      const pageSize = take || 10; // Default to 10 messages per page
+      console.log(`[WORLD-HISTORY] Fetching world chat history (email and worldId not logged) - page size: ${pageSize}, has token: ${!!continuationToken}`);
 
       const requestBody: any = {
         action: "getworldchats",
         email: email,
-        worldid: worldId
+        worldid: worldId,
+        take: pageSize
       };
 
-      // Only include continuationToken and take for subsequent requests (not on first load)
+      // Only include continuationToken if it's provided (not on first load)
       if (continuationToken) {
         requestBody.continuationToken = continuationToken;
-        requestBody.take = take || 10; // Default to 10 messages per page for pagination
       }
 
       console.log("[WORLD-HISTORY] 📤 REQUEST BODY SENT TO AZURE:", JSON.stringify(requestBody, null, 2));
