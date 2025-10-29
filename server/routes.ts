@@ -451,8 +451,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = JSON.parse(text);
+      
+      // Transform Azure's new format (text/ai) to our expected format (input/aiReply)
+      if (data.items && Array.isArray(data.items)) {
+        data.items = data.items.map((item: any) => ({
+          ...item,
+          input: item.text || item.input,     // Support both old and new format
+          aiReply: item.ai || item.aiReply,   // Support both old and new format
+        }));
+      }
+      
+      // Calculate count if not provided
+      if (!data.count && data.items) {
+        data.count = data.items.length;
+      }
+      
       console.log(`[WORLD-HISTORY] Retrieved ${data.count || 0} world history items for world ${worldId}`);
-      console.log("[WORLD-HISTORY] Raw data from Azure Function:", JSON.stringify(data, null, 2));
+      console.log("[WORLD-HISTORY] Transformed data being sent to frontend:", JSON.stringify(data, null, 2));
       res.json(data);
     } catch (error) {
       console.error("Error fetching world history:", error);
