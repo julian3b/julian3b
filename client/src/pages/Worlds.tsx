@@ -96,12 +96,33 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
     },
   });
 
-  // Update world mutation
+  // Update world mutation with optimistic updates
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: Partial<World> }) => {
       return apiRequest("PUT", `/api/worlds/${id}`, { ...data, userId, email: userEmail });
     },
+    onMutate: async ({ id, data }) => {
+      // Cancel outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ["/api/worlds", userId] });
+      
+      // Snapshot previous value
+      const previousWorlds = queryClient.getQueryData(["/api/worlds", userId]);
+      
+      // Optimistically update the cache
+      queryClient.setQueryData(["/api/worlds", userId], (old: any) => {
+        if (!old?.worlds) return old;
+        return {
+          ...old,
+          worlds: old.worlds.map((w: World) =>
+            w.id === id ? { ...w, ...data } : w
+          ),
+        };
+      });
+      
+      return { previousWorlds };
+    },
     onSuccess: () => {
+      // Invalidate to refetch in background (will confirm the optimistic update)
       queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
       setEditingWorld(null);
       resetForm();
@@ -110,7 +131,11 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
         description: t("worlds.updateSuccess"),
       });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback to previous state on error
+      if (context?.previousWorlds) {
+        queryClient.setQueryData(["/api/worlds", userId], context.previousWorlds);
+      }
       toast({
         title: t("common.error"),
         description: error instanceof Error ? error.message : t("worlds.updateSuccess"),
