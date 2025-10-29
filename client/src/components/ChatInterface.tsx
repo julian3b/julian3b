@@ -84,7 +84,7 @@ export function ChatInterface({
         body: JSON.stringify({
           email: userEmail,
           worldId: worldId,
-          take: 10, // Load 10 messages at a time
+          take: 100, // TESTING: Try loading 100 messages to bypass Azure limit
         }),
       });
       
@@ -159,7 +159,7 @@ export function ChatInterface({
         body: JSON.stringify({
           email: userEmail,
           worldId: activeWorldId,
-          take: 10,
+          take: 100, // TESTING: Try loading 100 messages to bypass Azure limit
           continuationToken: continuationToken,
         }),
       });
