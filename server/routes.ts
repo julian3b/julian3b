@@ -375,6 +375,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = JSON.parse(text);
+      
+      // Sort messages in chronological order (oldest first, newest last)
+      if (data.items && Array.isArray(data.items)) {
+        data.items.sort((a: any, b: any) => {
+          const dateA = new Date(a.CreatedUtc || a.createdUtc || 0).getTime();
+          const dateB = new Date(b.CreatedUtc || b.createdUtc || 0).getTime();
+          return dateA - dateB; // Ascending order (oldest first)
+        });
+      }
+      
       console.log(`[HISTORY] Retrieved ${data.count || 0} history items`);
       
       // Debug: Log first and last items to verify order
@@ -459,6 +469,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           input: item.text || item.input,     // Support both old and new format
           aiReply: item.ai || item.aiReply,   // Support both old and new format
         }));
+        
+        // Sort messages in chronological order (oldest first, newest last)
+        data.items.sort((a: any, b: any) => {
+          const dateA = new Date(a.createdUtc || 0).getTime();
+          const dateB = new Date(b.createdUtc || 0).getTime();
+          return dateA - dateB; // Ascending order (oldest first)
+        });
       }
       
       // Calculate count if not provided
