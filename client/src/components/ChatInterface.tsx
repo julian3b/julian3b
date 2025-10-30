@@ -279,6 +279,9 @@ export function ChatInterface({
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setIsLoading(true);
+    
+    // Scroll to bottom after user message is added
+    setTimeout(() => scrollToBottom("smooth"), 100);
 
     try {
       // Prepare world-specific settings if a world is selected
@@ -308,6 +311,9 @@ export function ChatInterface({
       };
       setMessages((prev) => [...prev, aiMessage]);
       
+      // Scroll to bottom after AI response is added
+      setTimeout(() => scrollToBottom("smooth"), 100);
+      
       // Reload initial world history after sending message to get latest from Azure
       if (activeWorldId && userEmail) {
         setTimeout(() => loadInitialWorldHistory(activeWorldId), 500); // Small delay to allow Azure to process
@@ -321,6 +327,9 @@ export function ChatInterface({
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
+      
+      // Scroll to bottom after error message is added
+      setTimeout(() => scrollToBottom("smooth"), 100);
     } finally {
       setIsLoading(false);
     }

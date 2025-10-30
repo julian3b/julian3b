@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application designed to provide a modern, in
 
 ## Recent Changes
 
+- **October 30, 2025**: Added auto-scroll to bottom on message send - page automatically scrolls to bottom when user sends message and when AI response arrives, ensuring newest messages are always visible
 - **October 30, 2025**: Fixed message ordering to display chronologically - added server-side sorting to ensure all chat messages display in chronological order (oldest at top, newest at bottom); Azure was returning messages in inconsistent order, now sorted by createdUtc timestamp in ascending order for both global and world chats
 - **October 30, 2025**: Fixed chat 500 errors for world messages - changed backend to omit empty optional fields (characters, events, scenario, places, additionalSettings) instead of sending empty strings to Azure Function
 - **October 30, 2025**: Fixed world settings save issue - implemented permanent optimistic updates without refetch; Azure Function has bug where editworld returns 200 OK but doesn't persist changes (UpdatedUtc never updates), so changes only persist in browser cache until Azure backend is fixed
