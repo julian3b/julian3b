@@ -1101,11 +1101,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestBody.responseStyle = worldSettings.responseStyle;
         requestBody.conversationStyle = worldSettings.conversationStyle;
         requestBody.customPersonality = worldSettings.customPersonality;
-        requestBody.characters = worldSettings.characters;
-        requestBody.events = worldSettings.events;
-        requestBody.scenario = worldSettings.scenario;
-        requestBody.places = worldSettings.places;
-        requestBody.additionalSettings = worldSettings.additionalSettings;
+        // Only include non-empty strings for optional fields
+        requestBody.characters = worldSettings.characters || undefined;
+        requestBody.events = worldSettings.events || undefined;
+        requestBody.scenario = worldSettings.scenario || undefined;
+        requestBody.places = worldSettings.places || undefined;
+        requestBody.additionalSettings = worldSettings.additionalSettings || undefined;
+        
+        console.log("[CHAT] Sending world chat with worldId:", requestBody.worldId, "model:", requestBody.model);
       }
 
       // SECURE: Send email, message, conversation history, and settings in encrypted POST body
