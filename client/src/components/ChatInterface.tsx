@@ -92,7 +92,7 @@ export function ChatInterface({
       
       const data = await response.json();
       
-      // Convert Azure items to messages
+      // Convert Azure items to messages and ensure chronological order (oldest first, newest last)
       const historyMessages: Message[] = [];
       if (data.items) {
         data.items.forEach((item: any, index: number) => {
@@ -117,6 +117,9 @@ export function ChatInterface({
           }
         });
       }
+      
+      // Sort messages by timestamp to ensure newest are at the bottom (chronological order)
+      historyMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
       
       setMessages(historyMessages);
       setContinuationToken(data.continuationToken || null);
@@ -168,7 +171,7 @@ export function ChatInterface({
       
       const data = await response.json();
       
-      // Convert Azure items to messages
+      // Convert Azure items to messages and ensure chronological order
       const olderMessages: Message[] = [];
       if (data.items) {
         data.items.forEach((item: any, index: number) => {
@@ -194,11 +197,16 @@ export function ChatInterface({
         });
       }
       
-      // Prepend older messages to the beginning, filtering out duplicates
+      // Sort older messages by timestamp (oldest first)
+      olderMessages.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+      
+      // Prepend older messages to the beginning, filtering out duplicates, then re-sort entire array
       setMessages((prev) => {
         const existingIds = new Set(prev.map(m => m.azureMessageId));
         const newMessages = olderMessages.filter(m => !existingIds.has(m.azureMessageId));
-        return [...newMessages, ...prev];
+        const combined = [...newMessages, ...prev];
+        // Re-sort entire array by timestamp to ensure chronological order (oldest to newest)
+        return combined.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
       });
       setContinuationToken(data.continuationToken || null);
       setHasMoreMessages(!!data.continuationToken);
