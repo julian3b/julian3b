@@ -122,10 +122,9 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
       return { previousWorlds };
     },
     onSuccess: () => {
-      // Delay refetch to allow Azure Table Storage to propagate changes (eventual consistency)
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
-      }, 2000);
+      // Don't refetch - keep optimistic update since Azure has a bug
+      // Azure returns 200 OK but doesn't actually save changes
+      // Refetching would overwrite our good data with stale Azure data
       
       setEditingWorld(null);
       resetForm();
