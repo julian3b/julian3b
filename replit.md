@@ -6,6 +6,7 @@ This is a full-stack AI chatbot web application designed to provide a modern, in
 
 ## Recent Changes
 
+- **October 30, 2025**: Fixed world settings save issue - implemented optimistic updates with 2-second refetch delay to handle Azure Table Storage eventual consistency; changes now appear instantly in UI and persist correctly despite Azure's delayed read-after-write propagation
 - **October 28, 2025**: Implemented infinite scroll pagination for world chat messages - displays 10 newest messages initially, automatically loads next 10 older messages when scrolling to top; maintains scroll position when prepending history using continuationToken from Azure
 - **October 28, 2025**: Fixed email verification parameter name - changed from `code` to `codeverify` in verifycode endpoint to match Azure Function expectations
 - **October 26, 2025**: Added email verification to signup flow - new users receive verification code via email (sendcode action), enter 6-digit code in OTP input, system verifies code (verifycode action with codeverify parameter) before granting access; includes resend functionality with 60-second cooldown timer

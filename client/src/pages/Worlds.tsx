@@ -122,8 +122,11 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
       return { previousWorlds };
     },
     onSuccess: () => {
-      // Invalidate to refetch in background (will confirm the optimistic update)
-      queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
+      // Delay refetch to allow Azure Table Storage to propagate changes (eventual consistency)
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["/api/worlds", userId] });
+      }, 2000);
+      
       setEditingWorld(null);
       resetForm();
       toast({
