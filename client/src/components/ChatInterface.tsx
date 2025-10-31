@@ -238,6 +238,7 @@ export function ChatInterface({
   useEffect(() => {
     if (!world && !selectedWorldId) {
       setMessages(initialMessages);
+      setIsInitialLoad(false); // Mark initial load as complete for main chat
     }
   }, [world, selectedWorldId, initialMessages]);
 
