@@ -1139,6 +1139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       console.log("[CHAT] Azure Function responded with status:", response.status);
+      console.log("[CHAT] Response Content-Type:", response.headers.get('content-type'));
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -1146,6 +1147,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
         throw new Error(`Azure Function error: ${response.status} - ${errorText}`);
       }
 
+      // Check if response is streaming (SSE) or regular JSON
+      const contentType = response.headers.get('content-type') || '';
+      
+      if (contentType.includes('text/event-stream')) {
+        // Handle streaming response
+        console.log('[CHAT] Detected streaming response, reading full stream...');
+        const reader = response.body?.getReader();
+        const decoder = new TextDecoder();
+        let fullText = '';
+        
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            fullText += decoder.decode(value, { stream: true });
+          }
+        }
+        
+        console.log('[CHAT] Full stream length:', fullText.length);
+        console.log('[CHAT] First 200 chars of stream:', fullText.substring(0, 200));
+        
+        // Try to extract JSON from SSE format (data: {...})
+        const lines = fullText.split('\n');
+        let jsonData = null;
+        
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            try {
+              jsonData = JSON.parse(line.substring(6));
+              if (jsonData.ok !== undefined || jsonData.ai || jsonData.reply) {
+                break; // Found the main response
+              }
+            } catch (e) {
+              // Not valid JSON, continue
+            }
+          }
+        }
+        
+        if (!jsonData) {
+          console.error('[CHAT] Failed to extract JSON from stream');
+          throw new Error('Could not parse streaming response from Azure Function');
+        }
+        
+        const data = jsonData;
+        // SECURITY: Only log success/failure, NOT message content or AI response
+        if (data.ok) {
+          console.log('[CHAT] Response received successfully from stream');
+        } else {
+          console.error('[CHAT] Azure Function returned error in stream:', data.error || data.message || 'No error message provided');
+        }
+        res.json(data);
+        return;
+      }
+
+      // Regular JSON response
       const text = await response.text();
       
       if (!text) {
