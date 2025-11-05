@@ -1,0 +1,78 @@
+        // --- updateworld ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            (action.Equals("updateworld", StringComparison.OrdinalIgnoreCase) ||
+             action.Equals("editworld", StringComparison.OrdinalIgnoreCase) ||
+             action.Equals("patchworld", StringComparison.OrdinalIgnoreCase)))
+        {
+            // world id / rowKey is required to update
+            var rowKey = ReadParam("worldid") ?? ReadParam("worldId") ?? ReadParam("id");
+            if (string.IsNullOrWhiteSpace(rowKey))
+            {
+                return await Json(req, HttpStatusCode.BadRequest, new
+                {
+                    ok = false,
+                    error = "worldId (id) is required."
+                });
+            }
+
+            // we expect the body to describe fields to change
+            string body2 = "";
+            if (!string.IsNullOrWhiteSpace(rawBody))
+            {
+                body2 = rawBody;
+            }
+            else
+            {
+                using var sr2 = new StreamReader(req.Body);
+                body2 = await sr2.ReadToEndAsync();
+            }
+
+            FlatWorldCreateRequest? flat = null;
+
+            try
+            {
+                flat = JsonSerializer.Deserialize<FlatWorldCreateRequest>(body2);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse FlatWorldCreateRequest JSON");
+                return await Json(req, HttpStatusCode.BadRequest, new
+                {
+                    ok = false,
+                    error = "Invalid JSON for world update."
+                });
+            }
+
+            if (flat == null || string.IsNullOrWhiteSpace(flat.Email))
+            {
+                return await Json(req, HttpStatusCode.BadRequest, new
+                {
+                    ok = false,
+                    error = "email is required in body."
+                });
+            }
+
+            // Call the service
+            var updateResult = await _worlds.UpdateAsync(flat.Email, rowKey!, flat);
+            bool updated = updateResult.updated;
+            string? updatedId = updateResult.id;
+            string? err = updateResult.error;
+
+            if (!updated)
+            {
+                return await Json(req, HttpStatusCode.BadRequest, new
+                {
+                    ok = false,
+                    error = err ?? "update failed",
+                    id = updatedId
+                });
+            }
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                ok = true,
+                id = updatedId ?? rowKey,
+                worldId = updatedId ?? rowKey,
+                email = flat.Email
+            });
+        }

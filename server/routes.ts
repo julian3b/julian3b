@@ -830,7 +830,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const azureFunctionKey = process.env.AZURE_FUNCTION_KEY;
 
       const params = new URLSearchParams({
-        ...(azureFunctionKey && { code: azureFunctionKey })
+        ...(azureFunctionKey && { code: azureFunctionKey }),
+        worldId: id  // Azure expects worldId as URL parameter, not in body
       });
 
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
@@ -838,7 +839,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const requestBody = {
         action: "editworld",
-        rowKey: id,
         ...updates
       };
       console.log("[WORLDS] Request body being sent:", JSON.stringify(requestBody, null, 2));
