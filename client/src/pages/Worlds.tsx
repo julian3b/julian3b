@@ -71,6 +71,12 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
       if (!response.ok) throw new Error("Failed to fetch worlds");
       return response.json();
     },
+    // Disable auto-refetching to preserve optimistic updates
+    // Azure has a bug where editworld returns 200 OK but doesn't persist changes
+    // So refetching would overwrite our optimistic updates with stale data
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    staleTime: Infinity,
   });
 
   // Create world mutation
