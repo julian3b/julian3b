@@ -32,7 +32,7 @@ export const userSettingsSchema = z.object({
   maxTokens: z.number().min(100).max(4000).default(2000),
   responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step", "narrative", "dramatic", "immersive", "action-packed"]).default("balanced"),
   conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic", "playful", "adventurous", "sarcastic", "flirtatious", "mysterious", "dramatic", "comedic", "edgy"]).default("friendly"),
-  customPersonality: z.string().max(5000).default(""),
+  customPersonality: z.string().max(10000).default(""),
 });
 
 export type UserSettings = z.infer<typeof userSettingsSchema>;
@@ -56,12 +56,12 @@ export const worldSchema = z.object({
   maxTokens: z.number().min(100).max(4000).default(2000),
   responseStyle: z.enum(["concise", "balanced", "detailed", "comprehensive", "bullet-points", "step-by-step", "narrative", "dramatic", "immersive", "action-packed"]).default("balanced"),
   conversationStyle: z.enum(["professional", "casual", "friendly", "technical", "enthusiastic", "witty", "empathetic", "academic", "socratic", "playful", "adventurous", "sarcastic", "flirtatious", "mysterious", "dramatic", "comedic", "edgy"]).default("friendly"),
-  customPersonality: z.string().max(5000).default(""),
-  characters: z.string().max(5000).default(""),
-  events: z.string().max(5000).default(""),
-  scenario: z.string().max(5000).default(""),
-  places: z.string().max(5000).default(""),
-  additionalSettings: z.string().max(5000).default(""),
+  customPersonality: z.string().max(10000).default(""),
+  characters: z.string().max(10000).default(""),
+  events: z.string().max(10000).default(""),
+  scenario: z.string().max(10000).default(""),
+  places: z.string().max(10000).default(""),
+  additionalSettings: z.string().max(10000).default(""),
   createdAt: z.number().default(() => Date.now()),
 });
 

@@ -83,7 +83,7 @@ Preferred communication style: Simple, everyday language.
 **Schema Definitions (via Zod and drizzle-zod):**
 - `users`: Stores user credentials.
 - `userSettingsSchema`: Defines AI customization preferences including model, temperature, max tokens, response style, conversation style, and custom personality. Supports a wide range of AI models (e.g., GPT-5 Nano, GPT-4o, o1-Pro).
-- `worldSchema`: Defines structure for "Worlds," each with its own AI settings, name, description, and rich context fields (characters, events, scenario, places, additional settings) up to 5,000 characters each.
+- `worldSchema`: Defines structure for "Worlds," each with its own AI settings, name, description, and rich context fields (characters, events, scenario, places, additional settings) up to 10,000 characters each.
 
 **Note:** Database integration is prepared with Drizzle ORM and schema definitions, but the application currently utilizes in-memory storage.
 

@@ -289,11 +289,11 @@ export function UserSettings({ userEmail }: UserSettingsProps) {
               value={settings.customPersonality}
               onChange={(e) => setSettings({ ...settings, customPersonality: e.target.value })}
               rows={4}
-              maxLength={5000}
+              maxLength={10000}
               data-testid="textarea-custom-personality"
             />
             <p className="text-sm text-muted-foreground">
-              {t('settings.customPersonalityDescription')} ({settings.customPersonality?.length || 0}/5000)
+              {t('settings.customPersonalityDescription')} ({settings.customPersonality?.length || 0}/10000)
             </p>
           </div>
         </div>
