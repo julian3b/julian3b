@@ -1112,6 +1112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (worldSettings) {
         requestBody.action = 'addworldchat';
         requestBody.worldId = worldSettings.worldId;
+        requestBody.stream = 'false';  // Force non-streaming mode for Replit compatibility
         requestBody.model = worldSettings.model;
         requestBody.temperature = worldSettings.temperature;
         requestBody.maxTokens = worldSettings.maxTokens;
