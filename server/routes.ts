@@ -1126,7 +1126,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         requestBody.places = worldSettings.places || undefined;
         requestBody.additionalSettings = worldSettings.additionalSettings || undefined;
         
+        console.log("[CHAT] 🔍 DEBUG: worldSettings received:", worldSettings ? "YES" : "NO");
+        console.log("[CHAT] 🔍 DEBUG: requestBody.action =", requestBody.action);
+        console.log("[CHAT] 🔍 DEBUG: Full requestBody keys:", Object.keys(requestBody));
         console.log("[CHAT] Sending world chat with worldId:", requestBody.worldId, "model:", requestBody.model);
+      } else {
+        console.log("[CHAT] ⚠️  NO worldSettings - sending to GLOBAL chat");
       }
 
       // SECURE: Send email, message, conversation history, and settings in encrypted POST body
