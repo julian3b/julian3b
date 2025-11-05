@@ -1155,7 +1155,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = JSON.parse(text);
       // SECURITY: Only log success/failure, NOT message content or AI response
-      console.log(`[CHAT] Response received ${data.ok ? 'successfully' : 'with error'}`);
+      if (data.ok) {
+        console.log('[CHAT] Response received successfully');
+      } else {
+        console.error('[CHAT] Azure Function returned error:', data.error || data.message || 'Unknown error');
+      }
       res.json(data);
     } catch (error) {
       console.error("Error calling Azure Function:", error);
