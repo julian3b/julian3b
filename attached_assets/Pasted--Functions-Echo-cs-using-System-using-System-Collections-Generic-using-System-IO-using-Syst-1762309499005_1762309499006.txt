@@ -1,0 +1,1447 @@
+// Functions/Echo.cs
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Web;
+using System.Threading.Tasks;
+using FunctionApp1.Entities;
+using FunctionApp1.Models;
+using FunctionApp1.Models.FunctionApp1.Models;
+using FunctionApp1.Services;
+using FunctionApp1.Services.Arcs;
+using FunctionApp1.Services.Scenes;
+using FunctionApp1.Services.Sessions;
+using FunctionApp1.Services.Settings;
+using FunctionApp1.Services.TextLog;
+using FunctionApp1.Services.UserService;
+using FunctionApp1.Services.WorldChat;
+using FunctionApp1.Services.Worlds;
+using FunctionApp1.Services.WorldSummary;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+
+public class Echo
+{
+    private readonly ILogger _logger;
+    private readonly IHttpClientFactory _http;
+    private readonly IConfiguration _cfg;
+    private readonly IUserService _users;
+    private readonly ITextLogService _log;
+    private readonly ISettingsService _settings;
+    private readonly IWorldService _worlds;
+    private readonly IWorldChatPagingService _worldChats;
+    private readonly IWorldSummaryService _worldSummaries;
+    private readonly ISessionService _sessions;
+    private readonly ISceneService _scenes;
+    private readonly IArcService _arcs;
+    private readonly IEmailService _emailService;
+    private readonly IEmailCodeService _emailCodes;
+    private readonly IAIService _ai;
+    private readonly OpenAIService _ai2;
+
+    public Echo(
+        ILoggerFactory lf,
+        IHttpClientFactory http,
+        IConfiguration cfg,
+        IUserService users,
+        ITextLogService log,
+        ISettingsService settings,
+        IWorldService worlds,
+        IWorldChatPagingService worldChats,
+        IWorldSummaryService worldSummaries,
+        ISessionService sessions,
+        ISceneService scenes,
+        IArcService arcs,
+        IEmailService emailService,
+        IEmailCodeService emailCodes,
+        IAIService ai,
+        OpenAIService ai2
+    )
+    {
+        _logger = lf.CreateLogger<Echo>();
+        _http = http;
+        _cfg = cfg;
+        _users = users;
+        _log = log;
+        _settings = settings;
+        _worlds = worlds;
+        _worldChats = worldChats;
+        _worldSummaries = worldSummaries;
+        _sessions = sessions;
+        _scenes = scenes;
+        _arcs = arcs;
+        _emailService = emailService;
+        _emailCodes = emailCodes;
+        _ai = ai;
+        _ai2 = ai2;
+    }
+
+    [Function("Echo")]
+    public async Task<HttpResponseData> Run(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post")]
+        HttpRequestData req,
+        FunctionContext ctx)
+    {
+        _logger.LogInformation("Echo triggered.");
+
+        // Read the body ONCE and reuse everywhere
+        string rawBody = "";
+        if (string.Equals(req.Method, "POST", StringComparison.OrdinalIgnoreCase))
+        {
+            using var sr = new StreamReader(req.Body);
+            rawBody = await sr.ReadToEndAsync();
+        }
+
+        var query = HttpUtility.ParseQueryString(req.Url.Query);
+
+        // Optional body-as-dictionary (only when JSON object)
+        Dictionary<string, object>? body = null;
+        if (!string.IsNullOrWhiteSpace(rawBody))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(rawBody);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    body = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+                    foreach (var p in doc.RootElement.EnumerateObject())
+                        body[p.Name] = p.Value.ValueKind switch
+                        {
+                            JsonValueKind.String => p.Value.GetString()!,
+                            JsonValueKind.Number => p.Value.ToString(),
+                            JsonValueKind.True => true,
+                            JsonValueKind.False => false,
+                            JsonValueKind.Null => null!,
+                            _ => p.Value.ToString() // arrays/objects as raw JSON
+                        };
+                }
+            }
+            catch { /* ignore bad JSON */ }
+        }
+
+        string? ReadParam(string key)
+        {
+            var v = query[key];
+            if (!string.IsNullOrWhiteSpace(v)) return v;
+
+            if (body != null && body.TryGetValue(key, out var raw) && raw is not null)
+                return raw.ToString();
+
+            var alts = new[] { key, ToCamel(key), ToSnake(key), key.Replace("_", ""), key.Replace("-", "") };
+            foreach (var a in alts)
+                if (body != null && body.TryGetValue(a, out var rv) && rv is not null)
+                    return rv.ToString();
+
+            return null;
+        }
+
+        static string ToCamel(string s) => string.IsNullOrEmpty(s) ? s : char.ToLowerInvariant(s[0]) + s[1..];
+        static string ToSnake(string s) => s.Replace(":", "_").Replace("-", "_");
+
+        var email = ReadParam("email");
+        var text = ReadParam("text");
+        var action = ReadParam("action");
+
+        // --- create account ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+           (action.Equals("create account", StringComparison.OrdinalIgnoreCase) ||
+            action.Equals("createAccount", StringComparison.OrdinalIgnoreCase)))
+        {
+            var password = ReadParam("password");
+            var name = ReadParam("name") ?? ReadParam("displayName");
+
+            var (created, error) = await _users.CreateAsync(new CreateAccountRequest(email ?? "", password ?? "", name ?? ""));
+            if (!created) return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error });
+
+            return await Json(req, HttpStatusCode.Created, new { ok = true, message = "User created.", user = new { email, name } });
+        }
+
+        // --- login ---
+        if (!string.IsNullOrWhiteSpace(action) && action.Equals("login", StringComparison.OrdinalIgnoreCase))
+        {
+            var password = ReadParam("password");
+            var (ok, name, error) = await _users.LoginAsync(new LoginRequest(email ?? "", password ?? ""));
+            if (!ok) return await Json(req, HttpStatusCode.Unauthorized, new { ok = false, error });
+            return await Json(req, HttpStatusCode.OK, new { ok = true, message = "Login OK.", user = new { email, name } });
+        }
+
+        // --- history/logs ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            (action.Equals("history", StringComparison.OrdinalIgnoreCase) ||
+             action.Equals("logs", StringComparison.OrdinalIgnoreCase)))
+        {
+            var emailParam = email;
+            if (string.IsNullOrWhiteSpace(emailParam))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required." });
+
+            var topParam = ReadParam("top");
+            int take = 50;
+            if (int.TryParse(topParam ?? string.Empty, out var parsed) && parsed > 0)
+                take = Math.Min(parsed, 500);
+
+            var items = await _log.GetHistoryAsync(emailParam, take);
+
+            var ordered = items.OrderBy(x => x.CreatedUtc)     // oldest → newest
+                .ToList();
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                ok = true,
+                email = emailParam,
+                count = ordered.Count,
+                items = ordered
+            });
+        }
+
+        // --- save settings ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            (action.Equals("saveSettings", StringComparison.OrdinalIgnoreCase) ||
+             action.Equals("saveSetting", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required." });
+
+            var model = ReadParam("model");
+            var temperature = ReadParam("temperature");
+            var maxTokens = ReadParam("maxTokens");
+            var responseStyle = ReadParam("responseStyle");
+            var conversationStyle = ReadParam("conversationStyle");
+            var customPersonality = ReadParam("customPersonality");
+
+            var coerced = UserSettings.Coerce(
+                model, temperature, maxTokens, responseStyle, conversationStyle, customPersonality
+            );
+
+            await _settings.UpsertAsync(email, coerced);
+
+            return await Json(req, HttpStatusCode.OK, new { ok = true, message = "Settings saved.", settings = coerced });
+        }
+
+        // --- get settings ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            (action.Equals("getSettings", StringComparison.OrdinalIgnoreCase) ||
+             action.Equals("settings", StringComparison.OrdinalIgnoreCase)))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required." });
+
+            var persistParam = ReadParam("persist");
+            var persist = string.Equals(persistParam, "true", StringComparison.OrdinalIgnoreCase) || persistParam == "1";
+
+            var s = await _settings.GetAsync(email, persistIfMissing: persist);
+            return await Json(req, HttpStatusCode.OK, new { ok = true, settings = s });
+        }
+
+        // ---------- default: call OpenAI using stored settings + HISTORY (with per-request overrides) ----------
+        // 1) load stored settings or defaults
+        var storedSettings = !string.IsNullOrWhiteSpace(email)
+            ? await _settings.GetAsync(email)
+            : UserSettings.Defaults;
+
+        // 2) read overrides
+        var modelOverride = ReadParam("model");
+        var temperatureOverride = ReadParam("temperature");
+        var maxTokensOverride = ReadParam("maxTokens");
+        var responseStyleOverride = ReadParam("responseStyle");
+        var conversationStyleOverride = ReadParam("conversationStyle");
+        var customPersonalityOverride = ReadParam("customPersonality");
+
+        // 3) merge
+        var effective = MergeSettings(
+            storedSettings,
+            modelOverride,
+            temperatureOverride,
+            maxTokensOverride,
+            responseStyleOverride,
+            conversationStyleOverride,
+            customPersonalityOverride
+        );
+
+        // 4) pull recent history (pairs) for this user; default 8, cap 20
+        int historyCount = 8;
+        var histParam = ReadParam("history") ?? ReadParam("historyCount");
+        if (int.TryParse(histParam ?? string.Empty, out var histParsed) && histParsed > 0)
+            historyCount = Math.Min(histParsed, 20);
+
+        var historyItems = (!string.IsNullOrWhiteSpace(email) && historyCount > 0)
+            ? await _log.GetHistoryAsync(email!, take: historyCount)
+            : Array.Empty<UserTextLogItem>();
+
+        // 5) build messages: system, (u,a)* oldest→newest, current user
+        var messages = BuildMessages(effective, historyItems, text);
+
+        // --- sendcode ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("sendcode", StringComparison.OrdinalIgnoreCase))
+        {
+            // 1. validate email param
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest,
+                    new { ok = false, error = "email is required." });
+
+            // 2. generate 6-digit numeric code
+            string code;
+            {
+                var rng = RandomNumberGenerator.Create();
+                var bytes = new byte[4];
+                rng.GetBytes(bytes);
+                var val = BitConverter.ToUInt32(bytes, 0) % 1000000u;
+                code = val.ToString("D6"); // zero-pad, e.g. 004239
+            }
+
+            // 3. save to table with 10 minute expiration
+            var expiresUtc = DateTime.UtcNow.AddMinutes(10);
+            await _emailCodes.SaveCodeAsync(email, code, expiresUtc);
+
+            // 4. send email
+            var (sentOk, sendErr) = await _emailService.SendVerificationCodeAsync(email, code);
+            if (!sentOk)
+            {
+                return await Json(req, HttpStatusCode.InternalServerError,
+                    new { ok = false, error = "failed to send code", details = sendErr });
+            }
+
+            // 5. success
+            return await Json(req, HttpStatusCode.OK,
+                new { ok = true, message = "verification code sent" });
+        }
+
+        // --- verifycode ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("verifycode", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest,
+                    new { ok = false, error = "email is required." });
+
+            var codeParam = ReadParam("codeverify");
+            if (string.IsNullOrWhiteSpace(codeParam))
+                return await Json(req, HttpStatusCode.BadRequest,
+                    new { ok = false, error = "code is required." });
+
+            var validCode = await _emailCodes.GetValidCodeAsync(email);
+            if (validCode is null)
+            {
+                return await Json(req, HttpStatusCode.Unauthorized,
+                    new { ok = false, error = "code expired or not found" });
+            }
+
+            if (!string.Equals(validCode, codeParam, StringComparison.Ordinal))
+            {
+                return await Json(req, HttpStatusCode.Unauthorized,
+                    new { ok = false, error = "invalid code" });
+            }
+
+            // TODO: mark user as verified / issue token / whatever you want
+            return await Json(req, HttpStatusCode.OK,
+                new { ok = true, message = "email verified" });
+        }
+
+        // --- createworld ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("createworld", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(rawBody))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "JSON body required." });
+
+            // Deserialize the flat payload
+            FlatWorldCreateRequest? flat;
+            try
+            {
+                var opts = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                flat = JsonSerializer.Deserialize<FlatWorldCreateRequest>(rawBody, opts);
+            }
+            catch (Exception ex)
+            {
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = $"Invalid JSON: {ex.Message}" });
+            }
+
+            if (flat is null)
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "Invalid body." });
+
+            // Fallback: if email missing in body, pull from query param
+            if (string.IsNullOrWhiteSpace(flat.Email) && !string.IsNullOrWhiteSpace(email))
+                flat = flat with { Email = email! };
+
+            if (string.IsNullOrWhiteSpace(flat.Email))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required in body or query." });
+
+            if (string.IsNullOrWhiteSpace(flat.Name))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "name is required." });
+
+            // Persist everything; service stores the full envelope (and raw JSON if you enabled RawJson)
+            var (created, worldId, err) = await _worlds.CreateAsync(flat, rawBody);
+            if (!created) return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = err });
+
+            return await Json(req, HttpStatusCode.Created, new { ok = true, id = worldId, name = flat.Name });
+        }
+
+        // --- getworlds ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("getworlds", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required." });
+
+            // optional paging cap
+            var topParam = ReadParam("top");
+            int take = 50;
+            if (int.TryParse(topParam ?? string.Empty, out var parsed) && parsed > 0)
+                take = Math.Min(parsed, 500);
+
+            var items = await _worlds.ListDetailedAsync(email);
+            var result = items.Take(take).ToList();
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                ok = true,
+                email,
+                count = result.Count,
+                items = result
+            });
+        }
+
+        // --- deleteworld (soft delete by RowKey) ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("deleteworld", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required." });
+
+            // RowKey can come in as "id" (preferred) or "rowKey"
+            var rowKey = ReadParam("id") ?? ReadParam("rowKey");
+            if (string.IsNullOrWhiteSpace(rowKey))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "id (rowKey) is required." });
+
+            var (updated, deactivatedId, err) = await _worlds.DeactivateAsync(email!, rowKey!);
+            if (!updated)
+                return await Json(req, HttpStatusCode.NotFound, new { ok = false, error = err ?? "world not found" });
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                ok = true,
+                id = deactivatedId,
+                message = "World deactivated (isActive=false)."
+            });
+        }
+
+        // --- updateworld ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            (action.Equals("updateworld", StringComparison.OrdinalIgnoreCase) ||
+             action.Equals("editworld", StringComparison.OrdinalIgnoreCase) ||
+             action.Equals("patchworld", StringComparison.OrdinalIgnoreCase)))
+        {
+            // world id / rowKey is required to update
+            var rowKey = ReadParam("worldid") ?? ReadParam("worldId") ?? ReadParam("id");
+            if (string.IsNullOrWhiteSpace(rowKey))
+            {
+                return await Json(req, HttpStatusCode.BadRequest, new
+                {
+                    ok = false,
+                    error = "worldId (id) is required."
+                });
+            }
+
+            // we expect the body to describe fields to change
+            string body2 = "";
+            if (!string.IsNullOrWhiteSpace(rawBody))
+            {
+                body2 = rawBody;
+            }
+            else
+            {
+                using var sr2 = new StreamReader(req.Body);
+                body2 = await sr2.ReadToEndAsync();
+            }
+
+            FlatWorldCreateRequest? flat = null;
+
+            try
+            {
+                flat = JsonSerializer.Deserialize<FlatWorldCreateRequest>(body2);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to parse FlatWorldCreateRequest JSON");
+                return await Json(req, HttpStatusCode.BadRequest, new
+                {
+                    ok = false,
+                    error = "Invalid JSON for world update."
+                });
+            }
+
+            if (flat == null || string.IsNullOrWhiteSpace(flat.Email))
+            {
+                return await Json(req, HttpStatusCode.BadRequest, new
+                {
+                    ok = false,
+                    error = "email is required in body."
+                });
+            }
+
+            // Call the service
+            var updateResult = await _worlds.UpdateAsync(flat.Email, rowKey!, flat);
+            bool updated = updateResult.updated;
+            string? updatedId = updateResult.id;
+            string? err = updateResult.error;
+
+            if (!updated)
+            {
+                return await Json(req, HttpStatusCode.BadRequest, new
+                {
+                    ok = false,
+                    error = err ?? "update failed",
+                    id = updatedId
+                });
+            }
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                ok = true,
+                id = updatedId ?? rowKey,
+                worldId = updatedId ?? rowKey,
+                email = flat.Email
+            });
+        }
+
+        // --- addworldchat ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("addworldchat", StringComparison.OrdinalIgnoreCase))
+        {
+            // ----------------------------
+            // 1) Validation
+            // ----------------------------
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required." });
+
+            var worldId = ReadParam("worldid") ?? ReadParam("worldId") ?? ReadParam("id");
+            if (string.IsNullOrWhiteSpace(worldId))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "worldId (id) is required." });
+
+            var userText = ReadParam("text");
+            if (string.IsNullOrWhiteSpace(userText))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "text is required." });
+
+            // ----------------------------
+            // 2) Collect overrides
+            // ----------------------------
+            var o_model = ReadParam("model");
+            var o_temp = ReadParam("temperature");
+            var o_maxTok = ReadParam("maxTokens");
+            var o_resp = ReadParam("responseStyle");
+            var o_conv = ReadParam("conversationStyle");
+            var o_pers = ReadParam("customPersonality");
+            var o_chars = ReadParam("characters");
+            var o_events = ReadParam("events");
+            var o_scenario = ReadParam("scenario");
+            var o_places = ReadParam("places");
+            var o_add = ReadParam("additionalSettings");
+
+            // ----------------------------
+            // 3) Kick off parallel tasks (LEAN)
+            // ----------------------------
+            // Use latest slice only; smaller chat page
+            var latestSliceTask = _worldSummaries.GetLatestSliceAsync(email!, worldId!);   // (fromUtc, toUtc, summaryText, createdUtc)
+            var chatPageTask = _worldChats.ListByWorldAsync(email!, worldId!, 24, null);
+            var worldTask = _worlds.GetAsync(email!, worldId!);
+            var sessionTask = _sessions.GetOrCreateSessionAsync(email!, worldId!);
+
+            // ----------------------------
+            // 4) Await minimal required info
+            // ----------------------------
+            var chatPage = await chatPageTask;
+            if (chatPage.error is not null)
+                return await Json(req, HttpStatusCode.BadGateway, new { ok = false, error = chatPage.error });
+
+            var latestSlice = await latestSliceTask;
+
+            // ----------------------------
+            // 5) Summarize story quickly (latest slice only)
+            // ----------------------------
+            var condensedStory = (latestSlice.summaryText ?? "").Trim();
+            if (condensedStory.Length > 600) condensedStory = condensedStory[..600];
+            var summarizedCutoff = latestSlice.toUtc;
+
+            // ----------------------------
+            // 6) Windowed chat context (tighter/faster)
+            // ----------------------------
+            var rows = chatPage.pageItems ?? new List<WorldChatRow>();
+            var windowed = rows
+                .Where(r => summarizedCutoff == default || r.CreatedUtc > summarizedCutoff)
+                .OrderByDescending(r => r.CreatedUtc)
+                .Take(8)                     // smaller window = faster prompt
+                .OrderBy(r => r.CreatedUtc)  // chronological in prompt
+                .ToList();
+
+            // ----------------------------
+            // 7) World + settings
+            // ----------------------------
+            var worldRow = await worldTask;
+            var baseSettings = worldRow?.WorldSettings is not null
+                ? new UserSettings(
+                    Model: worldRow.WorldSettings.Model ?? "",
+                    Temperature: worldRow.WorldSettings.Temperature ?? 0.7,
+                    MaxTokens: worldRow.WorldSettings.MaxTokens ?? 1024,
+                    ResponseStyle: worldRow.WorldSettings.ResponseStyle ?? "",
+                    ConversationStyle: worldRow.WorldSettings.ConversationStyle ?? "",
+                    CustomPersonality: worldRow.WorldSettings.CustomPersonality ?? "")
+                : UserSettings.Defaults;
+
+            var settings = MergeSettings(baseSettings, o_model, o_temp, o_maxTok, o_resp, o_conv, o_pers);
+
+            // ----------------------------
+            // 8) Context + system prompt (compact)
+            // ----------------------------
+            var sbCtx = new StringBuilder("You are roleplaying in this world. Stay in character. Never break voice.");
+            if (!string.IsNullOrWhiteSpace(worldRow?.Name)) sbCtx.Append($" World Name: {worldRow.Name.Trim()}.");
+            if (!string.IsNullOrWhiteSpace(worldRow?.WorldSettings?.ConversationStyle)) sbCtx.Append($" Conversation Style: {worldRow.WorldSettings.ConversationStyle.Trim()}.");
+            if (!string.IsNullOrWhiteSpace(worldRow?.WorldSettings?.CustomPersonality)) sbCtx.Append($" Personality: {worldRow.WorldSettings.CustomPersonality.Trim()}.");
+            if (!string.IsNullOrWhiteSpace(worldRow?.WorldSettings?.Scenario?.ToString())) sbCtx.Append($" Premise: {worldRow.WorldSettings.Scenario.ToString()!.Trim()}.");
+            if (!string.IsNullOrWhiteSpace(o_scenario)) sbCtx.Append($" Current Situation: {o_scenario.Trim()}.");
+            if (!string.IsNullOrWhiteSpace(o_events)) sbCtx.Append($" Recent Events: {o_events.Trim()}.");
+            if (!string.IsNullOrWhiteSpace(o_chars)) sbCtx.Append($" Characters: {o_chars.Trim()}.");
+            if (!string.IsNullOrWhiteSpace(o_places)) sbCtx.Append($" Important Locations: {o_places.Trim()}.");
+            if (!string.IsNullOrWhiteSpace(o_add)) sbCtx.Append($" Behavioral Rules: {o_add.Trim()}.");
+
+            var sys = new StringBuilder()
+                .AppendLine(BuildSystemPrompt(settings))
+                .AppendLine(sbCtx.ToString().Trim())
+                .AppendLine()
+                .AppendLine("Canon (latest slice only):")
+                .AppendLine(string.IsNullOrWhiteSpace(condensedStory) ? "(none)" : condensedStory)
+                .AppendLine()
+                .AppendLine("Response rules:")
+                .AppendLine("- Stay in character.")
+                .AppendLine("- Max 120 words.")
+                .AppendLine("- Do not restate past events unless necessary.")
+                .AppendLine()
+                .AppendLine("<ARC_SCENE_METADATA>")
+                .AppendLine("{\"mode\":\"CONTINUE_EXISTING_SCENE|NEW_SCENE_IN_EXISTING_ARC|NEW_ARC_AND_SCENE\",")
+                .AppendLine(" \"arcTitle\":\"short arc title or current arc title\",")
+                .AppendLine(" \"sceneTitle\":\"short scene title\",")
+                .AppendLine(" \"arcSummary\":\"1-2 sentence arc summary\",")
+                .AppendLine(" \"sceneSummary\":\"1-2 sentence scene summary\"}")
+                .AppendLine("</ARC_SCENE_METADATA>")
+                .ToString();
+
+            // ----------------------------
+            // 9) Prepare messages
+            // ----------------------------
+            var llmMsgs = new List<object> { new { role = "system", content = sys } };
+            foreach (var turn in windowed)
+            {
+                if (!string.IsNullOrWhiteSpace(turn.Input))
+                    llmMsgs.Add(new { role = "user", content = turn.Input!.Trim() });
+                if (!string.IsNullOrWhiteSpace(turn.AiReply))
+                    llmMsgs.Add(new { role = "assistant", content = turn.AiReply!.Trim() });
+            }
+            llmMsgs.Add(new { role = "user", content = userText!.Trim() });
+            // ----------------------------
+            // 10) Check if streaming is requested
+            // ----------------------------
+            if (!shouldStream)
+            {
+                // NON-STREAMING PATH for Replit compatibility
+                _logger.LogInformation("Non-streaming addworldchat: {Model} / {Msgs}", settings.Model, llmMsgs.Count);
+
+                var (aiReply, aiError) = await CallOpenAIWithMessagesAsync(llmMsgs, settings);
+                if (aiError is not null)
+                    return await Json(req, HttpStatusCode.BadGateway, new { ok = false, error = aiError });
+                // Save to database
+                var session = await sessionTask ?? new WorldSessionState { Email = email!, WorldId = worldId! };
+                var (mode, arcTitle, sceneTitle, arcSummary, sceneSummary) = ParseMetadata(aiReply ?? "");
+                var (arcId, sceneId) = await EnsureArcSceneAsync(
+                    email!, worldId!, session, mode, arcTitle, sceneTitle, arcSummary, sceneSummary
+                );
+                session.ArcId = arcId;
+                session.SceneId = sceneId;
+                await _sessions.UpdateSessionAsync(session);
+                var snapshot = new
+                {
+                    Model = settings.Model,
+                    Temperature = settings.Temperature,
+                    MaxTokens = settings.MaxTokens,
+                    ArcTitle = arcTitle,
+                    SceneTitle = sceneTitle
+                };
+                await _worldChats.AddAsync(new WorldChatCreate
+                {
+                    Email = email!,
+                    WorldId = worldId!,
+                    ArcId = arcId,
+                    SceneId = sceneId,
+                    Input = userText!,
+                    AiReply = aiReply ?? "",
+                    WorldSettings = JsonSerializer.Serialize(snapshot),
+                    CreatedUtc = DateTimeOffset.UtcNow
+                });
+                return await Json(req, HttpStatusCode.OK, new { ok = true, ai = new { reply = aiReply } });
+            }
+            // ----------------------------
+            // STREAMING PATH (original code)
+            // ----------------------------
+            var res = req.CreateResponse(HttpStatusCode.OK);
+            res.Headers.Add("Content-Type", "text/event-stream");
+        }
+
+
+            // --- getworldchats ---
+            if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("getworldchats", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, System.Net.HttpStatusCode.BadRequest,
+                    new { ok = false, error = "email is required." });
+
+            var worldId = ReadParam("worldid") ?? ReadParam("worldId") ?? ReadParam("id");
+            if (string.IsNullOrWhiteSpace(worldId))
+                return await Json(req, System.Net.HttpStatusCode.BadRequest,
+                    new { ok = false, error = "worldId (id) is required." });
+
+            // optional client inputs
+            var takeStr = ReadParam("take") ?? ReadParam("pageSize");
+            var token = ReadParam("continuationToken") ?? ReadParam("token");
+            var includeSettingsStr = ReadParam("includeSettings");
+
+            // enforce page size
+            int take = 10; // default page size
+            if (int.TryParse(takeStr, out var parsedTake))
+                take = Math.Clamp(parsedTake, 1, 200);
+
+            bool includeSettings =
+                string.Equals(includeSettingsStr, "true", StringComparison.OrdinalIgnoreCase) ||
+                string.Equals(includeSettingsStr, "1", StringComparison.OrdinalIgnoreCase);
+
+            // hit storage
+            var pageResult = await _worldChats.ListByWorldAsync(
+                email: email!,
+                worldId: worldId!,
+                take: take,
+                continuationToken: token // null on first call = latest chunk
+            );
+
+            if (pageResult.error is not null)
+            {
+                return await Json(req, System.Net.HttpStatusCode.BadGateway,
+                    new { ok = false, error = pageResult.error });
+            }
+
+            var finalRows = (pageResult.pageItems ?? new List<WorldChatRow>())
+                .OrderBy(x => x.CreatedUtc) // oldest first for UI
+                .ToList();
+
+            var itemsPayload = finalRows.Select(x => new
+            {
+                id = x.Id,
+                worldId = x.WorldId,
+                arcId = x.ArcId,
+                sceneId = x.SceneId,
+                text = x.Input,
+                ai = x.AiReply,
+                createdUtc = x.CreatedUtc,
+                worldSettings = includeSettings ? x.WorldSettings : null
+            });
+
+            return await Json(req, System.Net.HttpStatusCode.OK, new
+            {
+                ok = true,
+                count = finalRows.Count,
+                items = itemsPayload,
+                continuationToken = pageResult.continuationToken
+            });
+        }
+
+        // --- deleteworldmessage ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("deleteworldmessage", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest,
+                    new { ok = false, error = "email is required." });
+
+            var worldId = ReadParam("worldid") ?? ReadParam("worldId") ?? ReadParam("id");
+            if (string.IsNullOrWhiteSpace(worldId))
+                return await Json(req, HttpStatusCode.BadRequest,
+                    new { ok = false, error = "worldId (id) is required." });
+
+            var messageId =
+                ReadParam("messageid") ??
+                ReadParam("messageId") ??
+                ReadParam("rowKey") ??
+                ReadParam("chatId");
+
+            if (string.IsNullOrWhiteSpace(messageId))
+                return await Json(req, HttpStatusCode.BadRequest,
+                    new { ok = false, error = "messageId is required." });
+
+            var (deleted, deleteErr) = await _worldChats.DeleteAsync(
+                email: email!,
+                worldId: worldId!,
+                chatId: messageId!
+            );
+
+            if (!deleted)
+            {
+                return await Json(req, HttpStatusCode.BadGateway, new
+                {
+                    ok = false,
+                    error = deleteErr ?? "failed to delete message"
+                });
+            }
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                ok = true,
+                worldId,
+                messageId,
+                deleted = true
+            });
+        }
+
+        // --- createworldsummary ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("createworldsummary", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required." });
+
+            var worldId = ReadParam("worldid") ?? ReadParam("worldId") ?? ReadParam("id");
+            if (string.IsNullOrWhiteSpace(worldId))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "worldId (id) is required." });
+
+            // STEP 1: check what we've already summarized for THIS WORLD
+            DateTimeOffset? lastSliceFromUtc = null;
+            DateTimeOffset? lastSliceToUtc = null;
+            string? latestErr = null;
+
+            try
+            {
+                var latestSlice = await _worldSummaries.GetLatestSliceAsync(email!, worldId!);
+                lastSliceFromUtc = latestSlice.fromUtc;
+                lastSliceToUtc = latestSlice.toUtc;
+                latestErr = latestSlice.error;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "GetLatestSliceAsync failed (treat as no summaries yet) for {email}/{worldId}",
+                    email, worldId);
+
+                latestErr = null;
+                lastSliceFromUtc = null;
+                lastSliceToUtc = null;
+            }
+
+            if (latestErr is not null)
+            {
+                return await Json(req, HttpStatusCode.BadGateway, new { ok = false, error = latestErr });
+            }
+
+            var firstEverSummary = !lastSliceToUtc.HasValue;
+
+            // STEP 2: collect chat rows to summarize
+            var rowsToSummarize = new List<WorldChatRow>();
+            string? nextToken = null;
+
+            do
+            {
+                IReadOnlyList<WorldChatRow> pageItems;
+                string? continuationToken;
+                string? listErr;
+
+                try
+                {
+                    var listResult = await _worldChats.ListByWorldAsync(
+                        email: email!,
+                        worldId: worldId!,
+                        take: 200,
+                        continuationToken: nextToken
+                    );
+
+                    pageItems = listResult.pageItems;
+                    continuationToken = listResult.continuationToken;
+                    listErr = listResult.error;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex,
+                        "ListAsync failed (treating as no chat rows) for {email}/{worldId}",
+                        email, worldId);
+
+                    pageItems = Array.Empty<WorldChatRow>();
+                    continuationToken = null;
+                    listErr = null;
+                }
+
+                if (listErr is not null)
+                {
+                    return await Json(req, HttpStatusCode.BadGateway, new { ok = false, error = listErr });
+                }
+
+                if (pageItems.Count > 0)
+                {
+                    rowsToSummarize.AddRange(pageItems);
+                }
+
+                nextToken = continuationToken;
+
+                if (rowsToSummarize.Count > 10000)
+                    break;
+
+            } while (!string.IsNullOrEmpty(nextToken));
+
+            if (!firstEverSummary && lastSliceToUtc.HasValue)
+            {
+                rowsToSummarize = rowsToSummarize
+                    .Where(r => r.CreatedUtc > lastSliceToUtc.Value)
+                    .ToList();
+            }
+
+            var ordered = rowsToSummarize
+                .OrderBy(x => x.CreatedUtc)
+                .ToList();
+
+            if (!firstEverSummary && ordered.Count == 0)
+            {
+                return await Json(req, HttpStatusCode.OK, new
+                {
+                    ok = true,
+                    worldId,
+                    email,
+                    note = "No new messages since last summary.",
+                    createdUtc = DateTimeOffset.UtcNow,
+                    fromUtc = lastSliceToUtc,
+                    toUtc = lastSliceToUtc,
+                    summary = ""
+                });
+            }
+
+            if (firstEverSummary && ordered.Count == 0)
+            {
+                return await Json(req, HttpStatusCode.OK, new
+                {
+                    ok = true,
+                    worldId,
+                    email,
+                    note = "No chat history to summarize.",
+                    createdUtc = DateTimeOffset.UtcNow,
+                    fromUtc = (DateTimeOffset?)null,
+                    toUtc = (DateTimeOffset?)null,
+                    summary = ""
+                });
+            }
+
+            var sliceFromUtc = ordered.First().CreatedUtc;
+            var sliceToUtc = ordered.Last().CreatedUtc;
+
+            // STEP 3: Build convo slice text
+            var sb = new StringBuilder();
+            sb.AppendLine("This is a chronological slice of recent roleplay / story chat messages.");
+            if (firstEverSummary)
+            {
+                sb.AppendLine("This is the FIRST-EVER summary. You are summarizing the ENTIRE story so far.");
+                sb.AppendLine("Capture setup, relationships, emotional stakes, ongoing conflicts, and current situation.");
+                sb.AppendLine("Write like narrative prose (novel recap), no bullet points, no script formatting.");
+            }
+            else
+            {
+                sb.AppendLine("You are generating an INCREMENTAL summary ONLY for the NEW messages.");
+                sb.AppendLine("Do NOT restate older backstory except where needed for clarity.");
+                sb.AppendLine("Focus on what changed, how characters feel now, what the situation is at the end.");
+            }
+            sb.AppendLine();
+
+            foreach (var row in ordered)
+            {
+                sb.Append("[UTC ").Append(row.CreatedUtc.ToString("u")).AppendLine("]");
+                if (!string.IsNullOrWhiteSpace(row.Input))
+                {
+                    sb.Append("USER: ").AppendLine(row.Input.Trim());
+                }
+                if (!string.IsNullOrWhiteSpace(row.AiReply))
+                {
+                    sb.Append("ASSISTANT: ").AppendLine(row.AiReply.Trim());
+                }
+                sb.AppendLine("---");
+            }
+
+            var convoText = sb.ToString();
+
+            // STEP 4: Build OpenAI messages
+            var summarizationMessages = new List<object>
+            {
+                new {
+                    role = "system",
+                    content = firstEverSummary
+                        ? "You are creating the INITIAL CANON SUMMARY of the story so far. " +
+                          "Write in third-person, grounded, past-tense / present-progressive. " +
+                          "No bullet points, no screenplay formatting. Capture relationships, tone, stakes, and current status."
+                        : "You maintain rolling continuity for an ongoing roleplay narrative. " +
+                          "You are generating an incremental summary ONLY for the NEW messages provided. " +
+                          "Write in third-person, grounded, past-tense / present-progressive. " +
+                          "No bullet points, no screenplay formatting. " +
+                          "Do NOT re-tell old history; only describe what's new in this slice and where things stand now at the end."
+                },
+                new {
+                    role = "user",
+                    content = firstEverSummary
+                        ? "Summarize EVERYTHING in this slice as the canonical story-so-far. " +
+                          "End by describing the current situation and emotional state at the most recent timestamp.\n\n" +
+                          convoText
+                        : "Summarize ONLY these new messages. " +
+                          "Assume older summaries already cover everything before this slice. " +
+                          "End with the current situation/status at the final timestamp.\n\n" +
+                          convoText
+                }
+            };
+
+            // STEP 5: call LLM
+            var summarySettings = new UserSettings(
+                Model: "gpt-4o-mini",
+                Temperature: 0.4,
+                MaxTokens: 1024,
+                ResponseStyle: "",
+                ConversationStyle: "",
+                CustomPersonality: ""
+            );
+
+            var (summaryText, sumErr) = await CallOpenAIWithMessagesAsync(summarizationMessages, summarySettings);
+            if (summaryText is null && sumErr is not null)
+            {
+                return await Json(req, HttpStatusCode.BadGateway, new { ok = false, error = sumErr });
+            }
+
+            var createdNowUtc = DateTimeOffset.UtcNow;
+
+            // STEP 6: save slice
+            bool savedOk = true;
+            string? saveErr = null;
+            try
+            {
+                (savedOk, saveErr) = await _worldSummaries.InsertSliceAsync(
+                    email: email!,
+                    worldId: worldId!,
+                    summaryText: summaryText ?? "",
+                    createdUtc: createdNowUtc,
+                    fromUtc: sliceFromUtc,
+                    toUtc: sliceToUtc
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "InsertSliceAsync failed for {email}/{worldId} (first run?)",
+                    email, worldId);
+
+                savedOk = false;
+                saveErr = ex.Message;
+            }
+
+            if (!savedOk)
+            {
+                return await Json(req, HttpStatusCode.OK, new
+                {
+                    ok = true,
+                    worldId,
+                    email,
+                    createdUtc = createdNowUtc,
+                    fromUtc = sliceFromUtc,
+                    toUtc = sliceToUtc,
+                    summary = summaryText ?? "",
+                    warn = "Summary generated but failed to save WorldSummaries: " + (saveErr ?? "unknown")
+                });
+            }
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                ok = true,
+                worldId,
+                email,
+                createdUtc = createdNowUtc,
+                fromUtc = sliceFromUtc,
+                toUtc = sliceToUtc,
+                summary = summaryText
+            });
+        }
+
+        // --- getworldsummaries ---
+        if (!string.IsNullOrWhiteSpace(action) &&
+            action.Equals("getworldsummaries", StringComparison.OrdinalIgnoreCase))
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "email is required." });
+
+            var worldId = ReadParam("worldid") ?? ReadParam("worldId") ?? ReadParam("id");
+            if (string.IsNullOrWhiteSpace(worldId))
+                return await Json(req, HttpStatusCode.BadRequest, new { ok = false, error = "worldId (id) is required." });
+
+            var slicesResult = await _worldSummaries.GetAllSlicesAsync(email!, worldId!);
+
+            var slices = slicesResult.Item1;
+            var err = slicesResult.Item2;
+
+            if (err is not null)
+                return await Json(req, HttpStatusCode.BadGateway,
+                    new { ok = false, error = err });
+
+            var payload2 = slices.Select(s => new
+            {
+                fromUtc = s.fromUtc,
+                toUtc = s.toUtc,
+                createdUtc = s.createdUtc,
+                summary = s.summaryText
+            });
+
+            return await Json(req, HttpStatusCode.OK, new
+            {
+                ok = true,
+                worldId,
+                email,
+                count = slices.Count,
+                slices = payload2
+            });
+        }
+
+        // 6) call OpenAI with messages (default path)
+        var (aiReply, aiError) = await CallOpenAIWithMessagesAsync(messages, effective);
+
+        // 7) log (guard null email)
+        var logKey = string.IsNullOrWhiteSpace(email) ? "(anon)" : email!;
+        await _log.LogAsync(logKey, text, aiReply);
+
+        var payload = new
+        {
+            ok = true,
+            query = new { email, text, historyCount },
+            method = req.Method,
+            settingsUsed = effective,
+            ai = new { reply = aiReply, error = aiError },
+            timestamp = DateTimeOffset.UtcNow
+        };
+
+        return await Json(req, HttpStatusCode.OK, payload);
+    }
+
+    // Global merge for the default (non-addworldchat) path
+    private static UserSettings MergeSettings(UserSettings stored, string? model, string? temperature, string? maxTokens, string? responseStyle, string? conversationStyle, string? customPersonality)
+    {
+        var req = UserSettings.Coerce(model, temperature, maxTokens, responseStyle, conversationStyle, customPersonality);
+
+        return new UserSettings(
+            Model: string.IsNullOrWhiteSpace(model) ? stored.Model : req.Model,
+            Temperature: (temperature is null) ? stored.Temperature : req.Temperature,
+            MaxTokens: (maxTokens is null) ? stored.MaxTokens : req.MaxTokens,
+            ResponseStyle: string.IsNullOrWhiteSpace(responseStyle) ? stored.ResponseStyle : req.ResponseStyle,
+            ConversationStyle: string.IsNullOrWhiteSpace(conversationStyle) ? stored.ConversationStyle : req.ConversationStyle,
+            CustomPersonality: (customPersonality is null) ? stored.CustomPersonality : req.CustomPersonality
+        );
+    }
+
+    private static string BuildSystemPrompt(UserSettings s)
+    {
+        var pieces = new List<string> { "" };
+
+        if (!string.IsNullOrWhiteSpace(s.ResponseStyle))
+            pieces.Add($"Response style: {s.ResponseStyle}.");
+        if (!string.IsNullOrWhiteSpace(s.ConversationStyle))
+            pieces.Add($"Conversation style: {s.ConversationStyle}.");
+        if (!string.IsNullOrWhiteSpace(s.CustomPersonality))
+            pieces.Add($"Custom instructions: {s.CustomPersonality}");
+
+        return string.Join(" ", pieces);
+    }
+
+    // Build the final message list: system + (u,a)* + current user, trimmed to budget
+    private static List<object> BuildMessages(UserSettings s, IReadOnlyList<UserTextLogItem> history, string? currentUserText)
+    {
+        var msgs = new List<object>
+        {
+            new { role = "system", content = BuildSystemPrompt(s) }
+        };
+
+        if (history is { Count: > 0 })
+        {
+            foreach (var h in history) // already oldest→newest from GetHistoryAsync
+            {
+                if (!string.IsNullOrWhiteSpace(h.Input))
+                    msgs.Add(new { role = "user", content = h.Input });
+                if (!string.IsNullOrWhiteSpace(h.Response))
+                    msgs.Add(new { role = "assistant", content = h.Response });
+            }
+        }
+
+        msgs.Add(new { role = "user", content = $"{currentUserText}" });
+
+        // naive trimming: keep last ~7k characters across contents to avoid blowing context
+        const int budgetChars = 7000;
+        int total = 0;
+        var reversed = msgs.AsEnumerable().Reverse().ToList();
+        var kept = new List<object>(reversed.Count);
+        foreach (dynamic m in reversed)
+        {
+            string c = m.content ?? "";
+            total += c.Length;
+            kept.Add(m);
+            if (total > budgetChars) break;
+        }
+        kept.Reverse();
+        return kept;
+    }
+
+    public async Task<(string? reply, string? error)> CallOpenAIWithMessagesAsync(
+        List<object> messages, UserSettings s)
+    {
+        string model = string.IsNullOrWhiteSpace(s.Model)
+            ? (_cfg["OPENAI_MODEL"] ?? "gpt-4o-mini")
+            : s.Model.Trim();
+
+        bool reasoningModel = RequiresMaxCompletionTokens(model);
+        bool wantsJson = (s.ResponseStyle ?? "").Contains("json", StringComparison.OrdinalIgnoreCase);
+
+        var payload = new Dictionary<string, object?>
+        {
+            ["model"] = model,
+            ["messages"] = messages
+        };
+
+        if (!reasoningModel && s.Temperature is >= 0 and <= 2)
+            payload["temperature"] = s.Temperature;
+
+        if (s.MaxTokens > 0)
+            payload[reasoningModel ? "max_completion_tokens" : "max_tokens"] = s.MaxTokens;
+
+        if (wantsJson)
+            payload["response_format"] = new { type = "json_object" };
+
+        try
+        {
+            var client = _http.CreateClient("openai");
+
+            // separate statements to avoid "complex await expression" hot reload bug
+            HttpResponseMessage res = await client.PostAsJsonAsync("/v1/chat/completions", payload, CancellationToken.None);
+
+            if (!res.IsSuccessStatusCode)
+            {
+                string errBody = await res.Content.ReadAsStringAsync();
+                string msg;
+                try
+                {
+                    using var doc = JsonDocument.Parse(errBody);
+                    msg = doc.RootElement.GetProperty("error").GetProperty("message").GetString() ?? errBody;
+                }
+                catch
+                {
+                    msg = errBody.Length > 300 ? errBody[..300] + "..." : errBody;
+                }
+
+                _logger.LogError("OpenAI error {Status}: {Msg}", (int)res.StatusCode, msg);
+                return (null, $"OpenAI {(int)res.StatusCode}: {msg}");
+            }
+
+            await using Stream contentStream = await res.Content.ReadAsStreamAsync();
+            using JsonDocument json = await JsonDocument.ParseAsync(contentStream);
+
+            if (!json.RootElement.TryGetProperty("choices", out var choices) || choices.GetArrayLength() == 0)
+                return (null, "No choices returned by API.");
+
+            string? reply = choices[0].GetProperty("message").GetProperty("content").GetString();
+            return (reply, null);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogError(ex, "HTTP request to OpenAI failed");
+            return (null, "Network error contacting OpenAI: " + ex.Message);
+        }
+        catch (TaskCanceledException)
+        {
+            return (null, "Request timed out contacting OpenAI");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled OpenAI error");
+            return (null, ex.Message);
+        }
+    }
+
+    private static bool RequiresMaxCompletionTokens(string? model)
+    {
+        if (string.IsNullOrWhiteSpace(model))
+            return false;
+
+        var m = model.Trim().ToLowerInvariant();
+
+        // Models that want max_completion_tokens instead of max_tokens
+        return
+            m.StartsWith("o1") ||
+            m.StartsWith("o3") ||
+            m.StartsWith("o4") ||
+            m.StartsWith("gpt-5");
+    }
+
+    private static async Task<HttpResponseData> Json(HttpRequestData req, HttpStatusCode code, object obj)
+    {
+        var res = req.CreateResponse(code);
+        await res.WriteAsJsonAsync(obj);
+        return res;
+    }
+
+    private static (string mode, string arcTitle, string sceneTitle, string arcSummary, string sceneSummary)
+    ParseMetadata(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return ("CONTINUE_EXISTING_SCENE", "", "", "", "");
+
+        try
+        {
+            int start = text.IndexOf("<ARC_SCENE_METADATA>", StringComparison.OrdinalIgnoreCase);
+            int end = text.IndexOf("</ARC_SCENE_METADATA>", StringComparison.OrdinalIgnoreCase);
+            if (start < 0 || end < 0 || end <= start)
+                return ("CONTINUE_EXISTING_SCENE", "", "", "", "");
+
+            string jsonSegment = text.Substring(start + "<ARC_SCENE_METADATA>".Length, end - start - "<ARC_SCENE_METADATA>".Length).Trim();
+
+            using var doc = JsonDocument.Parse(jsonSegment);
+            var root = doc.RootElement;
+
+            string mode = root.TryGetProperty("mode", out var m) ? m.GetString() ?? "" : "";
+            string arcTitle = root.TryGetProperty("arcTitle", out var a) ? a.GetString() ?? "" : "";
+            string sceneTitle = root.TryGetProperty("sceneTitle", out var st) ? st.GetString() ?? "" : "";
+            string arcSummary = root.TryGetProperty("arcSummary", out var ar) ? ar.GetString() ?? "" : "";
+            string sceneSummary = root.TryGetProperty("sceneSummary", out var sr) ? sr.GetString() ?? "" : "";
+
+            return (mode, arcTitle, sceneTitle, arcSummary, sceneSummary);
+        }
+        catch
+        {
+            // fallback default
+            return ("CONTINUE_EXISTING_SCENE", "", "", "", "");
+        }
+    }
+
+
+
+    private async Task<(string arcId, string sceneId)> EnsureArcSceneAsync(
+    string email,
+    string worldId,
+    WorldSessionState session,
+    string mode,
+    string? arcTitle,
+    string? sceneTitle,
+    string? arcSummary,
+    string? sceneSummary)
+    {
+        try
+        {
+            // Defaults
+            string finalArcId = session.ArcId ?? "";
+            string finalSceneId = session.SceneId ?? "";
+
+            // NEW_ARC — create a new arc and new scene
+            if (mode.Contains("NEW_ARC", StringComparison.OrdinalIgnoreCase))
+            {
+                var newArc = await _arcs.CreateAsync(new WorldArc
+                {
+                    Email = email,
+                    WorldId = worldId,
+                    Title = string.IsNullOrWhiteSpace(arcTitle) ? "Untitled Arc" : arcTitle.Trim(),
+                    IsActive = true,
+                    CreatedUtc = DateTime.UtcNow
+                });
+
+                finalArcId = newArc.ArcId;
+
+                var newScene = await _scenes.CreateAsync(new WorldScene
+                {
+                    Email = email,
+                    WorldId = worldId,
+                    ArcId = finalArcId,
+                    Title = string.IsNullOrWhiteSpace(sceneTitle) ? "Untitled Scene" : sceneTitle.Trim(),
+                    Summary = sceneSummary ?? "",
+                    IsActive = true,
+                    CreatedUtc = DateTime.UtcNow
+                });
+
+                finalSceneId = newScene.SceneId;
+            }
+            // NEW_SCENE_IN_EXISTING_ARC — same arc, new scene
+            else if (mode.Contains("NEW_SCENE_IN_EXISTING_ARC", StringComparison.OrdinalIgnoreCase))
+            {
+                string arcToUse = finalArcId;
+
+                // If no active arc, create one
+                if (string.IsNullOrWhiteSpace(arcToUse))
+                {
+                    var fallbackArc = await _arcs.CreateAsync(new WorldArc
+                    {
+                        Email = email,
+                        WorldId = worldId,
+                        Title = string.IsNullOrWhiteSpace(arcTitle) ? "Untitled Arc" : arcTitle.Trim(),
+                        IsActive = true,
+                        CreatedUtc = DateTime.UtcNow
+                    });
+
+                    arcToUse = fallbackArc.ArcId;
+                }
+
+                var newScene = await _scenes.CreateAsync(new WorldScene
+                {
+                    Email = email,
+                    WorldId = worldId,
+                    ArcId = arcToUse,
+                    Title = string.IsNullOrWhiteSpace(sceneTitle) ? "Untitled Scene" : sceneTitle.Trim(),
+                    Summary = sceneSummary ?? "",
+                    IsActive = true,
+                    CreatedUtc = DateTime.UtcNow
+                });
+
+                finalArcId = arcToUse;
+                finalSceneId = newScene.SceneId;
+            }
+            // CONTINUE_EXISTING_SCENE — reuse current arc/scene
+            else
+            {
+                if (string.IsNullOrWhiteSpace(finalArcId) || string.IsNullOrWhiteSpace(finalSceneId))
+                {
+                    // fallback safety — ensure at least one arc+scene exist
+                    var fallbackArc = await _arcs.CreateAsync(new WorldArc
+                    {
+                        Email = email,
+                        WorldId = worldId,
+                        Title = "Default Arc",
+                        IsActive = true,
+                        CreatedUtc = DateTime.UtcNow
+                    });
+
+                    var fallbackScene = await _scenes.CreateAsync(new WorldScene
+                    {
+                        Email = email,
+                        WorldId = worldId,
+                        ArcId = fallbackArc.ArcId,
+                        Title = "Default Scene",
+                        IsActive = true,
+                        CreatedUtc = DateTime.UtcNow
+                    });
+
+                    finalArcId = fallbackArc.ArcId;
+                    finalSceneId = fallbackScene.SceneId;
+                }
+            }
+
+            return (finalArcId, finalSceneId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "EnsureArcSceneAsync failed for {email}/{worldId}", email, worldId);
+            // fallback safe defaults so code continues
+            return (session.ArcId ?? "", session.SceneId ?? "");
+        }
+    }
+}
