@@ -1204,6 +1204,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Regular JSON response
       const text = await response.text();
       
+      console.log('[CHAT] Response text length:', text.length);
+      console.log('[CHAT] First 500 chars of response:', text.substring(0, 500));
+      
       if (!text) {
         console.log('[CHAT] Empty response from Azure Function');
         throw new Error('Azure Function returned empty response');
