@@ -1158,7 +1158,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (data.ok) {
         console.log('[CHAT] Response received successfully');
       } else {
-        console.error('[CHAT] Azure Function returned error:', data.error || data.message || 'Unknown error');
+        console.error('[CHAT] Azure Function returned error response:');
+        console.error('[CHAT] Error message:', data.error || data.message || 'No error message provided');
+        console.error('[CHAT] Full response keys:', Object.keys(data));
+        console.error('[CHAT] Full response (sanitized):', JSON.stringify(data, null, 2));
       }
       res.json(data);
     } catch (error) {

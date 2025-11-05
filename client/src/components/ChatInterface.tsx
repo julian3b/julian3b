@@ -312,6 +312,12 @@ export function ChatInterface({
       // Send message with full conversation history (including the user's new message) and optional world settings
       const response = await onSendMessage(content, updatedMessages, worldSettings);
 
+      // Check if Azure returned an error
+      if (!response.ok) {
+        const errorMsg = response.error || response.message || "Azure Function returned an error without details";
+        throw new Error(errorMsg);
+      }
+
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
