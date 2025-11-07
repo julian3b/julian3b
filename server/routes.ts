@@ -867,7 +867,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = JSON.parse(text);
-      console.log("[WORLDS] World updated successfully");
+      console.log("[WORLDS] Azure response:", JSON.stringify(data, null, 2));
+      
+      if (data.ok === false) {
+        console.error("[WORLDS] Azure returned ok:false, error:", data.error);
+      } else {
+        console.log("[WORLDS] World updated successfully");
+      }
+      
       res.json(data);
     } catch (error) {
       console.error("Error updating world:", error);
