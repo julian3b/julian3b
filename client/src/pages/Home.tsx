@@ -211,7 +211,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="flex items-center justify-between border-b border-border bg-background flex-shrink-0">
+      <header className="sticky top-0 z-50 flex items-center justify-between border-b border-border bg-background flex-shrink-0">
         {isAuthenticated && <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />}
         {!isAuthenticated && <div className="px-4 md:px-6 py-3"><h2 className="text-base md:text-lg font-semibold">AI Chat</h2></div>}
         <div className="flex items-center gap-1 md:gap-2 px-2 md:px-4 flex-shrink-0">

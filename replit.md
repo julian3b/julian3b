@@ -10,6 +10,7 @@ This is a full-stack AI chatbot web application designed to provide a modern, in
 - **October 30, 2025**: Added auto-scroll to bottom on message send - page automatically scrolls to bottom when user sends message and when AI response arrives, ensuring newest messages are always visible
 - **October 30, 2025**: Fixed message ordering to display chronologically - added both server-side and client-side sorting to ensure all chat messages always display in chronological order (oldest at top, newest at bottom); Azure was returning messages in inconsistent order, now sorted by createdUtc timestamp in ascending order for both global and world chats with double-layer sorting for reliability
 - **October 30, 2025**: Fixed chat 500 errors for world messages - changed backend to omit empty optional fields (characters, events, scenario, places, additionalSettings) instead of sending empty strings to Azure Function
+- **November 7, 2025**: Made tabs sticky at top of screen for better mobile UX - tabs now stay visible when scrolling so users don't need to scroll up to switch tabs
 - **November 7, 2025**: Made application mobile-friendly with comprehensive responsive design improvements including touch-target accessibility (44px minimum), horizontal scrollable tab navigation, responsive padding/spacing (reduced on mobile), mobile-optimized chat interface and input area, full-width dialogs on mobile, and proper breakpoints throughout
 - **November 7, 2025**: Fixed world settings not saving - transformed field names from camelCase to PascalCase before sending to Azure; C# backend expects PascalCase properties (Email, Name, Model) but JavaScript sends camelCase (email, name, model)
 - **November 5, 2025**: Fixed world settings persistence - moved worldId from JSON body to URL query parameter where Azure's ReadParam() expects it; Azure was returning ok:false because it couldn't find the worldId in URL parameters
@@ -45,7 +46,7 @@ Preferred communication style: Simple, everyday language.
 - `ChatInterface`: Manages chat state, auto-scrolling, history.
 - `ChatMessage`: Displays individual messages with delete functionality for world chats.
 - `ChatInput`: Textarea with send button positioned inside the input field on the right.
-- `TabNavigation`: For multiple views and world-specific chats.
+- `TabNavigation`: For multiple views and world-specific chats. Sticky header implementation keeps tabs and user controls (Globe, User menu, Theme toggle) always visible at top of screen, especially important for mobile UX where users previously had to scroll up to switch tabs.
 - `UserPanel` & `UserSettings`: Authentication, profile, comprehensive AI customization (model, temperature, response/conversation styles, custom personality), and language selection.
 - `Worlds`: Interface for managing separate chat contexts, each with unique AI settings and dedicated conversation history. This feature enables varied use cases like "Coding Assistant" or "Creative Writer" personalities.
 - `LandingPage`: Pre-authentication entry point.
