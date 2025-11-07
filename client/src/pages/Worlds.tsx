@@ -384,18 +384,19 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
   }
 
   return (
-    <div className="h-full p-6 overflow-auto">
-      <div className="max-w-6xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+    <div className="h-full p-3 md:p-6 overflow-auto">
+      <div className="max-w-6xl mx-auto space-y-4 md:space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 md:gap-0">
           <div>
-            <h1 className="text-3xl font-bold">{t("worlds.title")}</h1>
-            <p className="text-muted-foreground mt-1">
+            <h1 className="text-2xl md:text-3xl font-bold">{t("worlds.title")}</h1>
+            <p className="text-sm md:text-base text-muted-foreground mt-1">
               {t("worlds.subtitle")}
             </p>
           </div>
           <Button
             onClick={() => setIsCreateOpen(true)}
             data-testid="button-create-world"
+            className="w-full md:w-auto min-h-[44px]"
           >
             <Plus className="w-4 h-4 mr-2" />
             {t("worlds.createWorld")}
@@ -410,7 +411,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
               <p className="text-muted-foreground text-center mb-4">
                 {t("worlds.noWorldsDescription")}
               </p>
-              <Button onClick={() => setIsCreateOpen(true)}>
+              <Button onClick={() => setIsCreateOpen(true)} className="min-h-[44px]">
                 <Plus className="w-4 h-4 mr-2" />
                 {t("worlds.createWorld")}
               </Button>
@@ -462,7 +463,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 min-h-[44px]"
                     onClick={() => handleEdit(world)}
                     data-testid={`button-edit-world-${world.id}`}
                   >
@@ -472,7 +473,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                   <Button
                     variant="outline"
                     size="sm"
-                    className="flex-1"
+                    className="flex-1 min-h-[44px]"
                     onClick={() => createSummaryMutation.mutate(world.id)}
                     disabled={createSummaryMutation.isPending}
                     data-testid={`button-summarize-world-${world.id}`}
@@ -489,6 +490,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                     size="sm"
                     onClick={() => handleDelete(world.id)}
                     data-testid={`button-delete-world-${world.id}`}
+                    className="min-h-[44px] min-w-[44px]"
                   >
                     <Trash2 className="w-4 h-4" />
                   </Button>
@@ -509,7 +511,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
             }
           }}
         >
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogContent className="max-w-2xl w-[calc(100vw-2rem)] md:w-full max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingWorld ? t("worlds.editWorld") : t("worlds.createWorld")}
@@ -760,6 +762,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                   resetForm();
                 }}
                 data-testid="button-cancel-world"
+                className="min-h-[44px]"
               >
                 {t("common.cancel")}
               </Button>
@@ -767,6 +770,7 @@ export default function Worlds({ userId, userEmail, onWorldClick }: WorldsProps)
                 onClick={editingWorld ? handleUpdate : handleCreate}
                 disabled={createMutation.isPending || updateMutation.isPending}
                 data-testid="button-save-world"
+                className="min-h-[44px]"
               >
                 {(createMutation.isPending || updateMutation.isPending) ? (
                   <>

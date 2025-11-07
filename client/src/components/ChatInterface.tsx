@@ -354,15 +354,17 @@ export function ChatInterface({
     <div className="flex flex-col h-full">
       {/* World Selector - only show in main chat, not in dedicated world chats */}
       {!world && worlds.length > 0 && (
-        <div className="border-b border-border bg-background p-4">
-          <div className="max-w-4xl mx-auto flex items-center gap-3">
-            <Globe className="w-5 h-5 text-muted-foreground" />
-            <span className="text-sm text-muted-foreground">World:</span>
+        <div className="border-b border-border bg-background p-3 md:p-4">
+          <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-start md:items-center gap-2 md:gap-3">
+            <div className="flex items-center gap-2 md:gap-3">
+              <Globe className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground flex-shrink-0" />
+              <span className="text-sm text-muted-foreground">World:</span>
+            </div>
             <Select
               value={selectedWorldId || "default"}
               onValueChange={(value) => setSelectedWorldId(value === "default" ? null : value)}
             >
-              <SelectTrigger className="w-[300px]" data-testid="select-world">
+              <SelectTrigger className="w-full md:w-[300px]" data-testid="select-world">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -375,7 +377,7 @@ export function ChatInterface({
               </SelectContent>
             </Select>
             {selectedWorld && (
-              <span className="text-sm text-muted-foreground">
+              <span className="text-xs md:text-sm text-muted-foreground">
                 {selectedWorld.model} • {selectedWorld.conversationStyle}
               </span>
             )}
@@ -384,7 +386,7 @@ export function ChatInterface({
       )}
       
       <div className="flex-1 overflow-y-auto" ref={messagesContainerRef}>
-        <div className="max-w-4xl mx-auto p-6 space-y-6">
+        <div className="max-w-4xl mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
           {hasMoreMessages && !isLoadingMore && !isInitialLoad && activeWorldId && (
             <div className="flex items-center justify-center py-2">
               <div className="text-xs text-muted-foreground bg-muted px-3 py-1 rounded-full">

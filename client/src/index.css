@@ -354,4 +354,40 @@
   .border.hover-elevate:not(.no-hover-interaction-elevate)::after {
     inset: -1px;
   }
+
+  /* Mobile-friendly utilities */
+  @media (max-width: 768px) {
+    /* Ensure touch targets are at least 44x44px on mobile */
+    .touch-target {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    
+    /* Reduce padding on mobile for better screen usage */
+    .mobile-compact {
+      padding-left: 0.75rem;
+      padding-right: 0.75rem;
+    }
+    
+    /* Hide scrollbars on mobile for cleaner UI */
+    .hide-scrollbar-mobile::-webkit-scrollbar {
+      display: none;
+    }
+    .hide-scrollbar-mobile {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  }
+  
+  /* Smooth scrolling for chat */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+  
+  /* Better text wrapping for long messages */
+  .break-words {
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+  }
 }

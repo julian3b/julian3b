@@ -211,19 +211,19 @@ export default function Home() {
 
   return (
     <div className="flex flex-col h-screen">
-      <header className="flex items-center justify-between border-b border-border bg-background">
+      <header className="flex items-center justify-between border-b border-border bg-background flex-shrink-0">
         {isAuthenticated && <TabNavigation tabs={tabs} activeTab={activeTab} onTabChange={setActiveTab} />}
-        {!isAuthenticated && <div className="px-6 py-3"><h2 className="text-lg font-semibold">AI Chat</h2></div>}
-        <div className="flex items-center gap-2 px-4">
+        {!isAuthenticated && <div className="px-4 md:px-6 py-3"><h2 className="text-base md:text-lg font-semibold">AI Chat</h2></div>}
+        <div className="flex items-center gap-1 md:gap-2 px-2 md:px-4 flex-shrink-0">
           {isAuthenticated && (
             <Button 
               variant="ghost" 
               size="icon" 
               onClick={() => setActiveTab("world-settings")}
               data-testid="button-world-settings"
-              className={activeTab === "world-settings" ? "bg-accent" : ""}
+              className={`min-h-[44px] min-w-[44px] ${activeTab === "world-settings" ? "bg-accent" : ""}`}
             >
-              <Globe className="w-5 h-5" />
+              <Globe className="w-4 h-4 md:w-5 md:h-5" />
             </Button>
           )}
           <Button 
@@ -231,8 +231,9 @@ export default function Home() {
             size="icon" 
             onClick={() => setIsUserPanelOpen(true)}
             data-testid="button-user-menu"
+            className="min-h-[44px] min-w-[44px]"
           >
-            <User className="w-5 h-5" />
+            <User className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
           <ThemeToggle />
         </div>
