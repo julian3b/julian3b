@@ -837,9 +837,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fullUrl = `${azureFunctionUrl}?${params.toString()}`;
       console.log("[WORLDS] Updating world in Azure Table Storage using editworld action");
       
+      // Transform camelCase to PascalCase for Azure's C# backend
+      const toPascalCase = (obj: any) => {
+        const result: any = {};
+        for (const [key, value] of Object.entries(obj)) {
+          const pascalKey = key.charAt(0).toUpperCase() + key.slice(1);
+          result[pascalKey] = value;
+        }
+        return result;
+      };
+      
       const requestBody = {
         action: "editworld",
-        ...updates
+        ...toPascalCase(updates)
       };
       console.log("[WORLDS] Request body being sent:", JSON.stringify(requestBody, null, 2));
 
